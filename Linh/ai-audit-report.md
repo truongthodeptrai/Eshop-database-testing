@@ -18,16 +18,13 @@ Help prepare database testing evidence for the current EShop project.
 Use DbUnit, Database Rider, and Tonic.ai Fabricate.
 Show that the tools are installed and that their hello-world tests pass.
 Capture metrics such as setup time, run time, and flake rate.
-Make the final report clear enough for a first-year student to understand.
+Rewrite the report clear enough for a first-year student to understand.
 ```
 
 The requested milestones emphasized in this audit were:
 
 - M1: Install each tool and pass its official or equivalent hello-world test.
 - M5: Capture setup time, run time, and flake rate.
-
-The user also requested that the final report be written in a way that a
-first-year student could understand.
 
 ## AI Work Summary
 
@@ -39,8 +36,6 @@ The main testing scenario selected was:
 Admin imports products from CSV.
 ```
 
-This scenario was chosen because it tests database behavior without using the
-common login, add product, and checkout flow.
 
 The work used a separate Java Maven testing folder called:
 
@@ -54,13 +49,11 @@ application itself is a Node.js, Express, React, and SQLite project.
 
 The AI helped prepare:
 
-- DbUnit hello-world test.
-- Database Rider hello-world test.
+- DbUnit, Database Rider hello-world test.
 - Explanations and corrections around the Java EShop scenario test for CSV product import.
 - Tonic Fabricate CSV test data reference.
 - Helper scripts for timing and metrics.
-- A student-friendly database testing report.
-- An explanation of what the helper JavaScript files do.
+- A newly rewrite version of the database testing report.
 
 ## Files Created or Modified
 
@@ -132,13 +125,6 @@ Collect timing and stability metrics for the normal scenario and the
 AI-generated data scenario.
 ```
 
-These scripts are helper scripts only. The main bug-finding proof is the Java
-Maven test:
-
-```text
-EshopCsvImportScenarioTest
-```
-
 ### Documentation
 
 ```text
@@ -152,19 +138,6 @@ Purpose:
 ```text
 Explain how to run the tests, what the results mean, and what was changed after
 human review.
-```
-
-### Screenshots and artifacts
-
-```text
-docs/screenshots/
-database-testing/artifacts/
-```
-
-Purpose:
-
-```text
-Store visual evidence and metrics output from test runs.
 ```
 
 ## Issues Encountered
@@ -215,8 +188,6 @@ updated to focus on the final CSV data and the final screenshot evidence.
 
 ## Human Review
 
-Human review was important in this work.
-
 The human reviewer:
 
 - Created or completed the Tonic Fabricate account/setup work.
@@ -229,5 +200,3 @@ The human reviewer:
 - Asked for the final documentation to show that the real bug evidence comes
   from the Java Maven EShop scenario test.
 
-The final documentation should therefore be read as AI-assisted work with human
-review and correction, not as fully independent AI completion.
