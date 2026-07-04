@@ -1,0 +1,5 @@
+name,price,description,imageUrl,category_id
+TONIC-FABRICATE-USB-C Hub,39.99,7-in-1 USB-C hub with HDMI and card reader,https://cdn.example.com/products/usbc-hub.jpg,2
+,19.99,Row with missing name to test transaction rollback,https://cdn.example.com/products/rollback.jpg,4
+TONIC-FABRICATE-Desk Lamp,-12.50,Product with negative price to test price validation,https://cdn.example.com/products/desk-lamp.jpg,6
+TONIC-FABRICATE-Webcam-non-admin,54.00,1080p webcam for non-admin authorization testing,https://cdn.example.com/products/webcam.jpg,2

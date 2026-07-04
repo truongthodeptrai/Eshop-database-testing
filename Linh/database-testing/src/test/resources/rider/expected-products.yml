@@ -1,0 +1,7 @@
+PRODUCT:
+  - ID: 1
+    NAME: "Hello Widget"
+    PRICE: 100
+  - ID: 2
+    NAME: "World Widget"
+    PRICE: 250

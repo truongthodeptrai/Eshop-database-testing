@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+  <USER_ACCOUNT ID="1" NAME="Ada Lovelace" EMAIL="ada@example.test"/>
+  <USER_ACCOUNT ID="2" NAME="Grace Hopper" EMAIL="grace@example.test"/>
+</dataset>

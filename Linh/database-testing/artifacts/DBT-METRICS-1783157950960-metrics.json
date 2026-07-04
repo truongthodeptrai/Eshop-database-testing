@@ -1,0 +1,48 @@
+{
+  "runId": "DBT-METRICS-1783157950960",
+  "baseUrl": "http://localhost:3000",
+  "setupTimeSeconds": 0.065,
+  "runTimeSeconds": 0.062,
+  "invalidAdminImport": {
+    "status": 200,
+    "json": {
+      "message": "Import hoàn tất: 2/3 sản phẩm được thêm",
+      "inserted": 2,
+      "errors": [
+        "Hàng 3: Thiếu tên sản phẩm"
+      ]
+    },
+    "text": "{\"message\":\"Import hoàn tất: 2/3 sản phẩm được thêm\",\"inserted\":2,\"errors\":[\"Hàng 3: Thiếu tên sản phẩm\"]}"
+  },
+  "nonAdminImport": {
+    "status": 200,
+    "json": {
+      "message": "Import hoàn tất: 1/1 sản phẩm được thêm",
+      "inserted": 1,
+      "errors": []
+    },
+    "text": "{\"message\":\"Import hoàn tất: 1/1 sản phẩm được thêm\",\"inserted\":1,\"errors\":[]}"
+  },
+  "databaseRows": [
+    {
+      "id": 19,
+      "name": "DBT-METRICS-1783157950960-negative",
+      "price": -9000
+    },
+    {
+      "id": 20,
+      "name": "DBT-METRICS-1783157950960-non-admin",
+      "price": 234567
+    },
+    {
+      "id": 18,
+      "name": "DBT-METRICS-1783157950960-valid",
+      "price": 123456
+    }
+  ],
+  "observedFailures": [
+    "FR-16 rollback failure: valid rows were inserted even though the import contained an invalid row.",
+    "FR-16 validation failure: a negative price was persisted.",
+    "FR-12 authorization failure: a normal user imported products through /api/admin/import-products."
+  ]
+}

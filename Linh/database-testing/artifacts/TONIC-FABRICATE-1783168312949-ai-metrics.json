@@ -1,0 +1,94 @@
+{
+  "runId": "TONIC-FABRICATE-1783168312949",
+  "sourceCsv": "/Users/nguyenphanthangthong/hacking/ctf/learning/eshop-sut-s2/database-testing/tonic-ai/ai-variant-products.csv",
+  "baseUrl": "http://localhost:3000",
+  "setupTimeSeconds": 0.06,
+  "runTimeSeconds": 0.056,
+  "invalidAdminImport": {
+    "status": 200,
+    "json": {
+      "message": "Import hoàn tất: 2/3 sản phẩm được thêm",
+      "inserted": 2,
+      "errors": [
+        "Hàng 3: Thiếu tên sản phẩm"
+      ]
+    },
+    "text": "{\"message\":\"Import hoàn tất: 2/3 sản phẩm được thêm\",\"inserted\":2,\"errors\":[\"Hàng 3: Thiếu tên sản phẩm\"]}"
+  },
+  "nonAdminImport": {
+    "status": 200,
+    "json": {
+      "message": "Import hoàn tất: 1/1 sản phẩm được thêm",
+      "inserted": 1,
+      "errors": []
+    },
+    "text": "{\"message\":\"Import hoàn tất: 1/1 sản phẩm được thêm\",\"inserted\":1,\"errors\":[]}"
+  },
+  "databaseRows": [
+    {
+      "id": 33,
+      "name": "TONIC-FABRICATE-USB-C Hub",
+      "price": 39.99
+    },
+    {
+      "id": 34,
+      "name": "TONIC-FABRICATE-Desk Lamp",
+      "price": -12.5
+    },
+    {
+      "id": 35,
+      "name": "TONIC-FABRICATE-Webcam-non-admin",
+      "price": 54
+    },
+    {
+      "id": 36,
+      "name": "TONIC-FABRICATE-USB-C Hub",
+      "price": 39.99
+    },
+    {
+      "id": 37,
+      "name": "TONIC-FABRICATE-Desk Lamp",
+      "price": -12.5
+    },
+    {
+      "id": 38,
+      "name": "TONIC-FABRICATE-Webcam-non-admin",
+      "price": 54
+    },
+    {
+      "id": 39,
+      "name": "TONIC-FABRICATE-USB-C Hub",
+      "price": 39.99
+    },
+    {
+      "id": 40,
+      "name": "TONIC-FABRICATE-Desk Lamp",
+      "price": -12.5
+    },
+    {
+      "id": 41,
+      "name": "TONIC-FABRICATE-Webcam-non-admin",
+      "price": 54
+    },
+    {
+      "id": 42,
+      "name": "TONIC-FABRICATE-USB-C Hub",
+      "price": 39.99
+    },
+    {
+      "id": 43,
+      "name": "TONIC-FABRICATE-Desk Lamp",
+      "price": -12.5
+    },
+    {
+      "id": 44,
+      "name": "TONIC-FABRICATE-Webcam-non-admin",
+      "price": 54
+    }
+  ],
+  "observedFailures": [
+    "FR-16 rollback failure: Fabricate import inserted rows even though the batch contained an invalid missing-name row.",
+    "FR-16 validation failure: Fabricate generated negative-price product was persisted.",
+    "FR-12 authorization failure: a normal user imported the Fabricate non-admin product through /api/admin/import-products."
+  ]
+}
