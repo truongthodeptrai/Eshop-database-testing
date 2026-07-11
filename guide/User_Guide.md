@@ -2,12 +2,14 @@
 
 This guide explains how to install and use three database-testing tools with the EShop System Under Test (SUT): DbUnit, Database Rider, and Tonic.ai. The local Java demos use Maven, SQLite, JUnit 5, and controlled datasets. Tonic.ai is used to generate privacy-safe test data from exported CSV files.
 
+Unless stated otherwise, run commands from the repository root, meaning the directory that contains this `guide/` folder. The repository can be cloned into any local directory; this guide does not depend on a specific username or absolute path.
+
 ## 1. Introduction
 
 EShop is a Node.js and Express e-commerce application that stores its data in SQLite. The database file is:
 
 ```text
-/Users/jiduckiess/Documents/SeminarTesting/backend/database.sqlite
+backend/database.sqlite
 ```
 
 The three tools have different roles:
@@ -43,7 +45,9 @@ mvn -version
 sqlite3 --version
 ```
 
-The demo targets Java 17 or later and requires Maven. On macOS with Homebrew:
+The demo targets Java 17 or later and requires Maven. Node.js, npm, Java, Maven, and SQLite must be available in the terminal's `PATH`.
+
+#### macOS
 
 ```bash
 brew install openjdk@17
@@ -52,12 +56,48 @@ brew install maven
 
 If Homebrew prints a command for adding OpenJDK to `PATH`, run that command, open a new Terminal window, and verify `java -version` again.
 
+#### Linux
+
+On Debian or Ubuntu:
+
+```bash
+sudo apt update
+sudo apt install -y nodejs npm openjdk-17-jdk maven sqlite3
+```
+
+On another Linux distribution, install the same five tools with that distribution's package manager. Then open a new terminal and run the verification commands above.
+
+#### Windows PowerShell
+
+The easiest option is to install the tools with `winget` in PowerShell:
+
+```powershell
+winget install --id OpenJS.NodeJS.LTS -e
+winget install --id EclipseAdoptium.Temurin.17.JDK -e
+winget install --id Apache.Maven -e
+winget install --id SQLite.SQLite -e
+```
+
+Close and reopen PowerShell after installation, then verify:
+
+```powershell
+node --version
+npm --version
+java -version
+mvn --version
+sqlite3 --version
+```
+
+If `winget` is unavailable or a package cannot be found, install the tools from their official download pages and add their installation directories to the Windows `PATH`. Maven also requires a Java JDK and its `bin` directory in `PATH`; after changing `PATH`, open a new PowerShell window before running the verification commands.
+
+Windows users can use PowerShell for all command blocks in this guide. The `cd`, `node`, `npm`, `mvn`, and `sqlite3` commands are the same. When a command is described as running from the repository root, first open PowerShell in the cloned repository directory.
+
 ### 2.2 Install EShop dependencies
 
 From the repository root:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/backend
+cd backend
 npm install
 ```
 
@@ -66,7 +106,7 @@ npm install
 The Java demo is already configured in `database-rider-demo/pom.xml`. Maven downloads Database Rider, JUnit, SQLite JDBC, and logging dependencies on the first test run.
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/database-rider-demo
+cd database-rider-demo
 mvn test
 ```
 
@@ -82,7 +122,7 @@ BUILD SUCCESS
 The DbUnit demo is configured in `dbunit-demo/pom.xml`. Maven downloads DbUnit, JUnit, and SQLite JDBC automatically:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/dbunit-demo
+cd dbunit-demo
 mvn test
 ```
 
@@ -106,7 +146,7 @@ For a beginner demo, start with `users.csv`. Configure generators for sensitive 
 Reset the database before the first run so that the schema and seed data are known:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/backend
+cd backend
 node database.js
 ```
 
@@ -122,7 +162,7 @@ Run the command from the `backend` directory as shown. If you are already inside
 ### 3.2 Run the DbUnit test
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/dbunit-demo
+cd dbunit-demo
 mvn test
 ```
 
@@ -137,7 +177,7 @@ It reads `src/test/resources/datasets/initial-dataset.xml`, applies a `CLEAN_INS
 ### 3.3 Run the Database Rider test
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/database-rider-demo
+cd database-rider-demo
 mvn test
 ```
 
@@ -160,7 +200,7 @@ The test opens the SQLite database through JDBC, applies the YAML dataset with D
 From the repository root:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting
+cd .
 sqlite3 backend/database.sqlite "SELECT id, name, email, role FROM users;"
 ```
 
@@ -171,14 +211,14 @@ The result should contain the Admin User and Test User rows from the YAML datase
 To demonstrate that EShop uses the same database, start the API in one terminal:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/backend
+cd backend
 node server.js
 ```
 
 Start the web frontend in another terminal if the frontend is available in the checkout:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/frontend-web
+cd frontend-web
 npm install
 npm run dev
 ```
@@ -205,7 +245,7 @@ Do not upload an empty `orders.csv`; create an order first or omit that table fr
 Edit `database-rider-demo/src/test/resources/datasets/eshop-users.yml` to create a different repeatable state. For DbUnit, edit `dbunit-demo/src/test/resources/datasets/initial-dataset.xml`. Then run the relevant Maven test:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/database-rider-demo
+cd database-rider-demo
 mvn test
 ```
 
@@ -253,14 +293,20 @@ Expected values should be based on the scenario being demonstrated. Do not claim
 Database Rider changes the SQLite file used by the test. Make a backup before experimenting:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting
+cd .
 cp backend/database.sqlite backend/database.before-rider.sqlite
+```
+
+On Windows PowerShell, use the equivalent command:
+
+```powershell
+Copy-Item backend/database.sqlite backend/database.before-rider.sqlite
 ```
 
 To return to the normal seeded state, run:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/backend
+cd backend
 node database.js
 ```
 
@@ -280,19 +326,28 @@ This makes the demo suitable for database setup and persistence checks. Full end
 
 ### `mvn: command not found`
 
-Install Maven and open a new Terminal:
+On macOS with Homebrew, install Maven and open a new Terminal:
 
 ```bash
 brew install maven
 mvn -version
 ```
 
+On Windows PowerShell, install Maven with `winget`, close and reopen PowerShell, then verify:
+
+```powershell
+winget install --id Apache.Maven -e
+mvn --version
+```
+
+On Linux, install Maven with the package manager for your distribution, for example `sudo apt install maven` on Debian or Ubuntu.
+
 ### DbUnit or Database Rider test fails after a data import
 
 Reset the local database and run only one Java demo at a time:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/backend
+cd backend
 node database.js
 cd ../dbunit-demo
 mvn test
@@ -304,12 +359,21 @@ Check that the dataset column names match the SQLite schema and that foreign-key
 
 ### `Unable to locate a Java Runtime`
 
-Install Java 17 and follow Homebrew's `PATH` instruction:
+On macOS with Homebrew, install Java 17 and follow Homebrew's `PATH` instruction:
 
 ```bash
 brew install openjdk@17
 java -version
 ```
+
+On Windows PowerShell:
+
+```powershell
+winget install --id EclipseAdoptium.Temurin.17.JDK -e
+java -version
+```
+
+If Java is installed but the command is still not found, add the JDK `bin` directory to the Windows `PATH`, open a new PowerShell window, and run `java -version` again.
 
 ### Maven cannot parse `pom.xml`
 
@@ -320,7 +384,7 @@ The `pom.xml` must contain only one XML document. Open `database-rider-demo/pom.
 Stop the EShop API and any SQLite shell that is using the file. Then reset the database and run the test again:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/backend
+cd backend
 node database.js
 cd ../database-rider-demo
 mvn test
@@ -341,7 +405,7 @@ From the repository root, use `sqlite3 backend/database.sqlite`. From inside `ba
 Run Maven again with an internet connection so it can download dependencies:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/database-rider-demo
+cd database-rider-demo
 mvn test
 ```
 
@@ -350,7 +414,7 @@ mvn test
 Generated data may mask the original email or password. Restore one demo user after the import:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting
+cd .
 sqlite3 backend/database.sqlite "UPDATE users SET email='test@eshop.com', password='Test1234!', role='user' WHERE id=2;"
 ```
 
