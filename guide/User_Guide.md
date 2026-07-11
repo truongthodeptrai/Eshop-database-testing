@@ -229,7 +229,7 @@ Open the URL printed by Vite, usually `http://localhost:5173`, and log in with t
 
 In Tonic.ai, choose a Files source with Local Filesystem, upload the CSV files, and create separate file groups named `users`, `products`, `coupons`, and `orders`. Resolve any schema-change warning before generation. Then:
 
-1. Open the `users` file group.
+1. Click "Database View" on the bar that has "File Groups"
 2. Assign generators to sensitive columns: Name, Email, Constant or scramble for password, Address, and Phone.
 3. Keep `id`, `role`, and foreign-key columns unchanged when the scenario depends on them.
 4. Choose `Generate Data` or `Run Generation`.
