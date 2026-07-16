@@ -1,30 +1,32 @@
 # EShop Database Testing User Guide
 
-This guide explains how to install and use three database-testing tools with the EShop System Under Test (SUT): DbUnit, Database Rider, and Tonic.ai. The local Java demos use Maven, SQLite, JUnit 5, and controlled datasets. Tonic.ai is used to generate privacy-safe test data from exported CSV files.
+This guide shows how to use three tools with the EShop System Under Test:
 
-Unless stated otherwise, run commands from the repository root, meaning the directory that contains this `guide/` folder. The repository can be cloned into any local directory; this guide does not depend on a specific username or absolute path.
+- DbUnit for XML-based database tests.
+- Database Rider for YAML-based database tests.
+- Tonic.ai for privacy-safe generated test data.
+
+The guide is written for a new user starting from a fresh clone. Unless stated otherwise, run commands from the repository root, meaning the folder that contains this `User_Guide.md` file.
 
 ## 1. Introduction
 
-EShop is a Node.js and Express e-commerce application that stores its data in SQLite. The database file is:
+EShop is a Node.js e-commerce application that stores data in SQLite:
 
 ```text
 backend/database.sqlite
 ```
 
-The three tools have different roles:
+The three tools have different jobs:
 
-```text
-DbUnit:        XML dataset  -> SQLite database -> JDBC assertion
-Database Rider: YAML dataset -> SQLite database -> JDBC assertion
-Tonic.ai:      CSV source   -> masked/generated CSV output
-```
+| Tool | Main purpose | Input | Output |
+| --- | --- | --- | --- |
+| DbUnit | Load controlled test data and verify database state | XML dataset | JUnit result |
+| Database Rider | Make DbUnit-style tests easier to write and maintain | YAML dataset | JUnit result |
+| Tonic.ai | Generate masked or synthetic test data | CSV export | Generated CSV |
 
-DbUnit and Database Rider load controlled data and verify database state. Tonic.ai generates safe replacement data from CSV exports; it does not replace the Java database assertions.
+DbUnit and Database Rider do not test the React UI directly. They test the database used by EShop. Tonic.ai does not assert correctness; it creates safer test data that can be reviewed or imported into a test database.
 
-The demo does not replace browser or API testing. It verifies the database used by EShop; it does not directly test React screens or Node.js route code.
-
-Default EShop accounts:
+Default EShop accounts after running the seed script:
 
 | Account | Email | Password |
 | --- | --- | --- |
@@ -33,9 +35,9 @@ Default EShop accounts:
 
 ## 2. Install
 
-### 2.1 Prerequisites
+### 2.1 Install required tools
 
-Install or verify the following tools:
+Check whether these commands work:
 
 ```bash
 node -v
@@ -43,179 +45,460 @@ npm -v
 java -version
 mvn -version
 sqlite3 --version
+git --version
 ```
 
-The demo targets Java 17 or later and requires Maven. Node.js, npm, Java, Maven, and SQLite must be available in the terminal's `PATH`.
+You need Node.js, npm, Java 17 or later, Maven, SQLite, and Git.
 
-#### macOS
+On macOS with Homebrew:
 
 ```bash
-brew install openjdk@17
-brew install maven
+brew install node openjdk@17 maven sqlite git
 ```
 
-If Homebrew prints a command for adding OpenJDK to `PATH`, run that command, open a new Terminal window, and verify `java -version` again.
-
-#### Linux
+If Homebrew prints an instruction for adding Java to `PATH`, run that command, open a new Terminal window, and check `java -version` again.
 
 On Debian or Ubuntu:
 
 ```bash
 sudo apt update
-sudo apt install -y nodejs npm openjdk-17-jdk maven sqlite3
+sudo apt install -y nodejs npm openjdk-17-jdk maven sqlite3 git
 ```
 
-On another Linux distribution, install the same five tools with that distribution's package manager. Then open a new terminal and run the verification commands above.
-
-#### Windows PowerShell
-
-The easiest option is to install the tools with `winget` in PowerShell:
+On Windows PowerShell:
 
 ```powershell
 winget install --id OpenJS.NodeJS.LTS -e
 winget install --id EclipseAdoptium.Temurin.17.JDK -e
 winget install --id Apache.Maven -e
 winget install --id SQLite.SQLite -e
+winget install --id Git.Git -e
 ```
 
-Close and reopen PowerShell after installation, then verify:
+Close and reopen PowerShell after installation.
 
-```powershell
-node --version
-npm --version
-java -version
-mvn --version
-sqlite3 --version
+### 2.2 Clone the project
+
+If the project is not on your machine yet:
+
+```bash
+git clone https://github.com/ttbhanh/eshop-sut.git SeminarTesting
+cd SeminarTesting
 ```
 
-If `winget` is unavailable or a package cannot be found, install the tools from their official download pages and add their installation directories to the Windows `PATH`. Maven also requires a Java JDK and its `bin` directory in `PATH`; after changing `PATH`, open a new PowerShell window before running the verification commands.
+If you already have the project folder, open a terminal in that folder.
 
-Windows users can use PowerShell for all command blocks in this guide. The `cd`, `node`, `npm`, `mvn`, and `sqlite3` commands are the same. When a command is described as running from the repository root, first open PowerShell in the cloned repository directory.
-
-### 2.2 Install EShop dependencies
-
-From the repository root:
+### 2.3 Install EShop backend dependencies
 
 ```bash
 cd backend
 npm install
+cd ..
 ```
 
-### 2.3 Install Database Rider dependencies
+### 2.4 Create the SQLite database
 
-The Java demo is already configured in `database-rider-demo/pom.xml`. Maven downloads Database Rider, JUnit, SQLite JDBC, and logging dependencies on the first test run.
-
-```bash
-cd database-rider-demo
-mvn test
-```
-
-Successful output ends with a result similar to:
-
-```text
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
-BUILD SUCCESS
-```
-
-### 2.4 Install DbUnit dependencies
-
-The DbUnit demo is configured in `dbunit-demo/pom.xml`. Maven downloads DbUnit, JUnit, and SQLite JDBC automatically:
-
-```bash
-cd dbunit-demo
-mvn test
-```
-
-### 2.5 Prepare Tonic.ai
-
-Tonic.ai is a web application, so no local package installation is required for this demo. Prepare CSV source files from the EShop database and upload them to a Tonic workspace. Use one file group per table because files in the same file group must have the same columns:
-
-| File group | Source file |
-| --- | --- |
-| `users` | `users.csv` |
-| `products` | `products.csv` |
-| `coupons` | `coupons.csv` |
-| `orders` | `orders.csv` |
-
-For a beginner demo, start with `users.csv`. Configure generators for sensitive fields such as name, email, password, address, and phone. Keep identifiers and relationship fields such as `id`, `role`, and `user_id` unchanged when relationships must remain valid.
-
-## 3. First Test
-
-### 3.1 Reset the EShop database
-
-Reset the database before the first run so that the schema and seed data are known:
+Run the database seed script before running any Java database test:
 
 ```bash
 cd backend
 node database.js
+cd ..
 ```
 
-Expected messages include:
+Expected output:
 
 ```text
 Database initialized and seeded (Phase 2).
 Connected to database
 ```
 
-Run the command from the `backend` directory as shown. If you are already inside `backend`, use `sqlite3 database.sqlite`, not `sqlite3 backend/database.sqlite`.
-
-### 3.2 Run the DbUnit test
+Verify that the database exists:
 
 ```bash
-cd dbunit-demo
-mvn test
+sqlite3 backend/database.sqlite "SELECT id, name, email, role FROM users;"
 ```
 
-The DbUnit test class is:
+You should see the admin user and the test user.
 
-```text
-dbunit-demo/src/test/java/com/eshop/dbunit/EshopDbUnitTest.java
-```
+## 3. First Test
 
-It reads `src/test/resources/datasets/initial-dataset.xml`, applies a `CLEAN_INSERT` operation, and checks that the `users` table contains two rows. DbUnit is the lower-level XML-based database-testing demonstration.
+This section creates two small Java test projects inside the EShop repository. If the folders already exist, compare your files with the snippets below.
 
-### 3.3 Run the Database Rider test
-
-```bash
-cd database-rider-demo
-mvn test
-```
-
-The test class is:
-
-```text
-database-rider-demo/src/test/java/com/eshop/databaserider/EshopDatabaseRiderTest.java
-```
-
-The dataset is:
-
-```text
-database-rider-demo/src/test/resources/datasets/eshop-users.yml
-```
-
-The test opens the SQLite database through JDBC, applies the YAML dataset with Database Rider, and asserts that the `users` table contains two rows.
-
-### 3.4 Verify the result with SQLite
+### 3.1 Create the DbUnit demo folder
 
 From the repository root:
 
 ```bash
-cd .
+mkdir -p dbunit-demo/src/test/java/com/eshop/dbunit
+mkdir -p dbunit-demo/src/test/resources/datasets
+touch dbunit-demo/pom.xml
+touch dbunit-demo/src/test/resources/datasets/initial-dataset.xml
+touch dbunit-demo/src/test/java/com/eshop/dbunit/EshopDbUnitTest.java
+```
+
+Open `dbunit-demo/pom.xml` and paste:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.eshop</groupId>
+    <artifactId>dbunit-demo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.dbunit</groupId>
+            <artifactId>dbunit</artifactId>
+            <version>2.7.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.45.3.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+Open `dbunit-demo/src/test/resources/datasets/initial-dataset.xml` and paste:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <categories id="1" name="Dien thoai"/>
+    <categories id="2" name="Laptop"/>
+    <categories id="3" name="Phu kien"/>
+
+    <users id="1" name="Admin User" email="admin@eshop.com" password="Admin123!" role="admin"
+           login_attempts="0" locked_until="[null]" reset_token="[null]"
+           shipping_address="[null]" phone="[null]"/>
+    <users id="2" name="Test User" email="test@eshop.com" password="Test1234!" role="user"
+           login_attempts="0" locked_until="[null]" reset_token="[null]"
+           shipping_address="[null]" phone="[null]"/>
+
+    <products id="1" name="iPhone 15 Pro Max" price="30000000"
+              description="Dien thoai cao cap cua Apple"
+              imageUrl="https://placehold.co/300x300/png?text=iPhone+15" category_id="1"/>
+    <products id="2" name="MacBook Pro M3" price="45000000"
+              description="Laptop chuyen nghiep manh me"
+              imageUrl="https://placehold.co/300x300/png?text=Macbook+Pro" category_id="2"/>
+</dataset>
+```
+
+Open `dbunit-demo/src/test/java/com/eshop/dbunit/EshopDbUnitTest.java` and paste:
+
+```java
+package com.eshop.dbunit;
+
+import org.dbunit.IDatabaseTester;
+import org.dbunit.JdbcDatabaseTester;
+import org.dbunit.dataset.IDataSet;
+import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
+import org.dbunit.operation.DatabaseOperation;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class EshopDbUnitTest {
+
+    private static final String DB_PATH =
+            Paths.get("..", "backend", "database.sqlite")
+                    .toAbsolutePath()
+                    .normalize()
+                    .toString();
+
+    @Test
+    void shouldLoadInitialDatasetAndCheckUsers() throws Exception {
+        IDataSet dataSet = new FlatXmlDataSetBuilder()
+                .setColumnSensing(true)
+                .build(new File("src/test/resources/datasets/initial-dataset.xml"));
+
+        IDatabaseTester databaseTester = new JdbcDatabaseTester(
+                "org.sqlite.JDBC",
+                "jdbc:sqlite:" + DB_PATH
+        );
+
+        databaseTester.setDataSet(dataSet);
+        databaseTester.setSetUpOperation(DatabaseOperation.CLEAN_INSERT);
+        databaseTester.onSetup();
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) AS total FROM users")) {
+
+            assertEquals(2, resultSet.getInt("total"));
+        }
+    }
+}
+```
+
+Run the DbUnit test:
+
+```bash
+cd dbunit-demo
+mvn test
+cd ..
+```
+
+Expected result:
+
+```text
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+### 3.2 Create the Database Rider demo folder
+
+From the repository root:
+
+```bash
+mkdir -p database-rider-demo/src/test/java/com/eshop/databaserider
+mkdir -p database-rider-demo/src/test/resources/datasets
+touch database-rider-demo/pom.xml
+touch database-rider-demo/src/test/resources/datasets/eshop-users.yml
+touch database-rider-demo/src/test/java/com/eshop/databaserider/EshopDatabaseRiderTest.java
+```
+
+Open `database-rider-demo/pom.xml` and paste:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.eshop</groupId>
+    <artifactId>database-rider-demo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.database-rider</groupId>
+            <artifactId>rider-core</artifactId>
+            <version>1.44.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.45.3.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.13</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+Open `database-rider-demo/src/test/resources/datasets/eshop-users.yml` and paste:
+
+```yaml
+categories:
+  - id: 1
+    name: "Dien thoai"
+  - id: 2
+    name: "Laptop"
+  - id: 3
+    name: "Phu kien"
+
+users:
+  - id: 1
+    name: "Admin User"
+    email: "admin@eshop.com"
+    password: "Admin123!"
+    role: "admin"
+    login_attempts: 0
+    locked_until: null
+    reset_token: null
+    shipping_address: null
+    phone: null
+  - id: 2
+    name: "Test User"
+    email: "test@eshop.com"
+    password: "Test1234!"
+    role: "user"
+    login_attempts: 0
+    locked_until: null
+    reset_token: null
+    shipping_address: null
+    phone: null
+
+products:
+  - id: 1
+    name: "iPhone 15 Pro Max"
+    price: 30000000
+    description: "Dien thoai cao cap cua Apple"
+    imageUrl: "https://placehold.co/300x300/png?text=iPhone+15"
+    category_id: 1
+```
+
+Open `database-rider-demo/src/test/java/com/eshop/databaserider/EshopDatabaseRiderTest.java` and paste:
+
+```java
+package com.eshop.databaserider;
+
+import com.github.database.rider.core.configuration.DataSetConfig;
+import com.github.database.rider.core.configuration.DBUnitConfig;
+import com.github.database.rider.core.dsl.RiderDSL;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class EshopDatabaseRiderTest {
+
+    private static final String DB_PATH =
+            Paths.get("..", "backend", "database.sqlite")
+                    .toAbsolutePath()
+                    .normalize()
+                    .toString();
+
+    @Test
+    void shouldSeedUsersWithDatabaseRiderYamlDataset() throws Exception {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH)) {
+            RiderDSL.withConnection(connection)
+                    .withDataSetConfig(new DataSetConfig("datasets/eshop-users.yml")
+                            .cleanBefore(true)
+                            .disableConstraints(true))
+                    .withDBUnitConfig(new DBUnitConfig()
+                            .addDBUnitProperty("caseSensitiveTableNames", false))
+                    .createDataSet();
+        }
+
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) AS total FROM users")) {
+
+            assertEquals(2, resultSet.getInt("total"));
+        }
+    }
+}
+```
+
+Run the Database Rider test:
+
+```bash
+cd database-rider-demo
+mvn test
+cd ..
+```
+
+Expected result:
+
+```text
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+### 3.3 Check the database after the tests
+
+From the repository root:
+
+```bash
 sqlite3 backend/database.sqlite "SELECT id, name, email, role FROM users;"
 ```
 
-The result should contain the Admin User and Test User rows from the YAML dataset.
+Expected rows:
 
-### 3.5 Run EShop separately
+```text
+1|Admin User|admin@eshop.com|admin
+2|Test User|test@eshop.com|user
+```
 
-To demonstrate that EShop uses the same database, start the API in one terminal:
+## 4. Advanced Usage
+
+### 4.1 Add a stronger assertion
+
+The first tests only check that two users exist. To verify a specific role, add this block inside a test method after the dataset is loaded:
+
+```java
+try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
+     Statement statement = connection.createStatement();
+     ResultSet resultSet = statement.executeQuery(
+             "SELECT role FROM users WHERE email = 'admin@eshop.com'")) {
+
+    assertEquals("admin", resultSet.getString("role"));
+}
+```
+
+This assertion proves that the admin account is not only inserted, but also has the expected authorization role.
+
+### 4.2 Test an order scenario
+
+For an order scenario, first run EShop and create an order through the web UI or API. Start the backend:
 
 ```bash
 cd backend
 node server.js
 ```
 
-Start the web frontend in another terminal if the frontend is available in the checkout:
+In another terminal, start the web frontend:
 
 ```bash
 cd frontend-web
@@ -223,143 +506,112 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite, usually `http://localhost:5173`, and log in with the test account. Keep the API terminal running while using the web application.
-
-### 3.6 Run the Tonic.ai data-generation workflow
-
-In Tonic.ai, choose a Files source with Local Filesystem, upload the CSV files, and create separate file groups named `users`, `products`, `coupons`, and `orders`. Resolve any schema-change warning before generation. Then:
-
-1. Click "Database View" on the bar that has "File Groups"
-2. Assign generators to sensitive columns: Name, Email, Constant or scramble for password, Address, and Phone.
-3. Keep `id`, `role`, and foreign-key columns unchanged when the scenario depends on them.
-4. Choose `Generate Data` or `Run Generation`.
-5. Wait for the job to finish.
-6. Download the generated CSV from the completed job or file group download action.
-
-Do not upload an empty `orders.csv`; create an order first or omit that table from the beginner demo. Review the generated CSV before importing it into SQLite. Generated passwords and emails may prevent the original web login from working.
-
-## 4. Advanced Usage
-
-### 4.1 Change a DbUnit or Database Rider dataset
-
-Edit `database-rider-demo/src/test/resources/datasets/eshop-users.yml` to create a different repeatable state. For DbUnit, edit `dbunit-demo/src/test/resources/datasets/initial-dataset.xml`. Then run the relevant Maven test:
+Open the Vite URL, usually `http://localhost:5173`, log in as `test@eshop.com`, add a product to cart, and complete checkout. Then check the database:
 
 ```bash
-cd database-rider-demo
-mvn test
+sqlite3 backend/database.sqlite "SELECT id, user_id, total_amount, status FROM orders;"
 ```
 
-Keep foreign-key values consistent. For example, a product's `category_id` must refer to an existing category.
+Only write an automated order assertion after you know the exact expected order data.
 
-### 4.2 Use Tonic.ai for privacy-safe data
+### 4.3 Export CSV files for Tonic.ai
 
-Tonic.ai should be used on a copy or export of the local database. It can replace personally identifiable values while preserving useful formats. A practical mapping is:
+Create a folder for CSV source files:
 
-| Column | Generator | Keep or replace |
+```bash
+mkdir -p tonic-export/source
+```
+
+Export tables from SQLite:
+
+```bash
+sqlite3 -header -csv backend/database.sqlite "SELECT * FROM users;" > tonic-export/source/users.csv
+sqlite3 -header -csv backend/database.sqlite "SELECT * FROM products;" > tonic-export/source/products.csv
+sqlite3 -header -csv backend/database.sqlite "SELECT * FROM coupons;" > tonic-export/source/coupons.csv
+sqlite3 -header -csv backend/database.sqlite "SELECT * FROM orders;" > tonic-export/source/orders.csv
+```
+
+If `orders.csv` only contains a header row, create an order first or skip that file in the Tonic.ai demo.
+
+### 4.4 Configure Tonic.ai
+
+In Tonic.ai:
+
+1. Create a workspace.
+2. Choose a Files source.
+3. Choose Local Filesystem.
+4. Upload CSV files from `tonic-export/source`.
+5. Create one file group per table.
+
+Use this mapping:
+
+| CSV file | File group name |
+| --- | --- |
+| `users.csv` | `users` |
+| `products.csv` | `products` |
+| `coupons.csv` | `coupons` |
+| `orders.csv` | `orders` |
+
+Do not upload all CSV files into one file group. Tonic.ai expects files inside one group to have the same columns.
+
+For the `users` file group, configure generators:
+
+| Column | Suggested generator | Reason |
 | --- | --- | --- |
-| `users.name` | Name | Replace |
-| `users.email` | Email | Replace |
-| `users.password` | Constant or scramble | Replace |
-| `users.shipping_address` | Address | Replace |
-| `users.phone` | Phone | Replace |
-| `users.id` | Passthrough | Keep for relationships |
-| `users.role` | Passthrough | Keep for authorization scenarios |
+| `name` | Name | Replace real names |
+| `email` | Email | Replace real emails |
+| `password` | Constant or Character Scramble | Avoid keeping real passwords |
+| `shipping_address` | Address | Replace real addresses |
+| `phone` | Phone | Replace real phone numbers |
+| `id` | Passthrough | Preserve relationships |
+| `role` | Passthrough | Preserve admin/user behavior |
 
-After generation, inspect the CSV schema and values. Import generated data only into a backup or disposable database. Restore one known test account if the web demo needs login.
+Run generation, wait for the job to finish, and download the generated CSV output. Review the generated CSV before importing it into SQLite.
 
-### 4.3 Add a database assertion
+### 4.5 Import generated CSV carefully
 
-The current test checks the number of users. A second assertion can verify a specific role:
-
-```java
-try (Statement statement = connection.createStatement();
-     ResultSet resultSet = statement.executeQuery(
-             "SELECT role FROM users WHERE email = 'admin@eshop.com'")) {
-    assertEquals("admin", resultSet.getString("role"));
-}
-```
-
-For an order scenario, first create an order through the EShop API or web application, then verify it with JDBC:
-
-```sql
-SELECT user_id, total_amount, status
-FROM orders;
-```
-
-Expected values should be based on the scenario being demonstrated. Do not claim a checkout result unless the checkout was actually executed.
-
-### 4.4 Protect the original database
-
-Database Rider changes the SQLite file used by the test. Make a backup before experimenting:
+For seminar purposes, showing the generated CSV is usually enough. If you import generated users into SQLite, import into a backup database first:
 
 ```bash
-cd .
-cp backend/database.sqlite backend/database.before-rider.sqlite
+cp backend/database.sqlite backend/database.tonic-demo.sqlite
 ```
 
-On Windows PowerShell, use the equivalent command:
-
-```powershell
-Copy-Item backend/database.sqlite backend/database.before-rider.sqlite
-```
-
-To return to the normal seeded state, run:
-
-```bash
-cd backend
-node database.js
-```
-
-### 4.5 Understand the test boundary
-
-DbUnit and Database Rider are Java database-testing tools. EShop is a Node.js application, but both can access the same SQLite file. Tonic.ai works from exported files or a configured source connection. The integration point for the local Java demos is the database file, not the programming language:
-
-```text
-Node.js EShop API -> backend/database.sqlite <- DbUnit / Database Rider
-                                      \
-                                       -> CSV export -> Tonic.ai -> generated CSV
-```
-
-This makes the demo suitable for database setup and persistence checks. Full end-to-end behavior still requires API or browser actions.
+Then import only after checking that the CSV columns match the `users` table. If generated email or password values replace the default login account, `test@eshop.com` may no longer work until you restore that user.
 
 ## 5. Troubleshooting
 
 ### `mvn: command not found`
 
-On macOS with Homebrew, install Maven and open a new Terminal:
+Maven is not installed or is not in `PATH`.
+
+On macOS:
 
 ```bash
 brew install maven
 mvn -version
 ```
 
-On Windows PowerShell, install Maven with `winget`, close and reopen PowerShell, then verify:
+On Debian or Ubuntu:
+
+```bash
+sudo apt install -y maven
+mvn -version
+```
+
+On Windows PowerShell:
 
 ```powershell
 winget install --id Apache.Maven -e
 mvn --version
 ```
 
-On Linux, install Maven with the package manager for your distribution, for example `sudo apt install maven` on Debian or Ubuntu.
-
-### DbUnit or Database Rider test fails after a data import
-
-Reset the local database and run only one Java demo at a time:
-
-```bash
-cd backend
-node database.js
-cd ../dbunit-demo
-mvn test
-cd ../database-rider-demo
-mvn test
-```
-
-Check that the dataset column names match the SQLite schema and that foreign-key values refer to existing rows.
+Close and reopen the terminal after installation.
 
 ### `Unable to locate a Java Runtime`
 
-On macOS with Homebrew, install Java 17 and follow Homebrew's `PATH` instruction:
+Java is missing or not in `PATH`.
+
+On macOS:
 
 ```bash
 brew install openjdk@17
@@ -373,68 +625,56 @@ winget install --id EclipseAdoptium.Temurin.17.JDK -e
 java -version
 ```
 
-If Java is installed but the command is still not found, add the JDK `bin` directory to the Windows `PATH`, open a new PowerShell window, and run `java -version` again.
+If the command still fails, add the JDK `bin` folder to `PATH` and reopen the terminal.
 
 ### Maven cannot parse `pom.xml`
 
-The `pom.xml` must contain only one XML document. Open `database-rider-demo/pom.xml` and remove any Markdown, terminal output, or text after `</project>`.
+The `pom.xml` must contain only XML. Remove Markdown fences, terminal output, or extra text after `</project>`.
 
-### `database is locked`
+### `no such table: users`
 
-Stop the EShop API and any SQLite shell that is using the file. Then reset the database and run the test again:
+The SQLite database has not been initialized. Run:
 
 ```bash
 cd backend
 node database.js
-cd ../database-rider-demo
-mvn test
+cd ..
 ```
 
 ### `unable to open database file`
 
-Check the current directory and use the correct relative path:
+Check your current directory:
 
 ```bash
 pwd
 ```
 
-From the repository root, use `sqlite3 backend/database.sqlite`. From inside `backend`, use `sqlite3 database.sqlite`.
+From the repository root, the database path is `backend/database.sqlite`. From inside `backend`, the path is `database.sqlite`.
 
-### `No suitable driver` or missing Maven dependency
+### `database is locked`
 
-Run Maven again with an internet connection so it can download dependencies:
-
-```bash
-cd database-rider-demo
-mvn test
-```
-
-### The web login no longer works after generated-data import
-
-Generated data may mask the original email or password. Restore one demo user after the import:
-
-```bash
-cd .
-sqlite3 backend/database.sqlite "UPDATE users SET email='test@eshop.com', password='Test1234!', role='user' WHERE id=2;"
-```
-
-Use only test data in this local demo database.
+Stop any running EShop backend server or SQLite shell that is using the database file, then run the test again.
 
 ### Tonic.ai reports multiple schemas detected
 
-Do not upload `users.csv`, `products.csv`, `coupons.csv`, and `orders.csv` into one file group. Create one file group for each table. Files inside one group must have matching columns.
+Create one file group per CSV table. Do not combine `users.csv`, `products.csv`, `coupons.csv`, and `orders.csv` in the same file group.
 
-### Tonic.ai says that a file group must contain at least one file
+### Tonic.ai says a file group must contain at least one file
 
-Give the group a name and upload a non-empty CSV file. If `orders.csv` is empty, create an order in EShop first or leave that table out of the first Tonic.ai demonstration.
+Upload a non-empty CSV file. If `orders.csv` has no order rows, skip the `orders` group or create an order in EShop before exporting.
+
+### Web login no longer works after generated data
+
+Generated data may replace email or password fields. Restore a demo account:
+
+```bash
+sqlite3 backend/database.sqlite "UPDATE users SET email='test@eshop.com', password='Test1234!', role='user' WHERE id=2;"
+```
 
 ## 6. References
 
+- DbUnit documentation: <https://www.dbunit.org/>
 - Database Rider documentation: <https://database-rider.github.io/database-rider/>
 - Database Rider source repository: <https://github.com/database-rider/database-rider>
-- DbUnit documentation: <https://www.dbunit.org/>
-- DbUnit step-by-step project guide: `DBUNIT_STEP_BY_STEP_GUIDE.md`
-- Tonic.ai project guide: `TONIC_AI_TESTING_GUIDE.md`
 - Maven documentation: <https://maven.apache.org/guides/index.html>
 - SQLite command-line shell: <https://sqlite.org/cli.html>
-- EShop project files: `setup_guide.md`, `backend/database.js`, and `database-rider-demo/`
