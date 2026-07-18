@@ -1,86 +1,163 @@
-# Database Testing Report for EShop
+# Báo cáo kiểm thử cơ sở dữ liệu cho EShop
 
-Date: 2026-07-17
+Ngày: 2026-07-19
 
-## 1. Introduction
+## 1. Giới thiệu
 
-Database testing is important because many application bugs are not only in the
-user interface. They happen when data is saved, updated, deleted, or checked in
-the database.
+Kiểm thử cơ sở dữ liệu rất quan trọng vì nhiều lỗi ứng dụng không chỉ xuất hiện
+trên giao diện. Lỗi có thể xảy ra khi dữ liệu được lưu, cập nhật, xóa hoặc kiểm
+tra trong cơ sở dữ liệu.
 
-For this seminar, our System Under Test (SUT) is the EShop project in https://github.com/ttbhanh/eshop-sut
+Hệ thống được kiểm thử trong seminar là dự án EShop tại
+https://github.com/ttbhanh/eshop-sut
 
-EShop is a good SUT because it is a normal shopping application. It has users,
-products, categories, coupons, carts, orders, and admin features. These features
-all depend on correct database behavior.
+EShop phù hợp để minh họa vì đây là một ứng dụng thương mại điện tử điển hình,
+bao gồm người dùng, sản phẩm, danh mục, mã giảm giá, giỏ hàng, đơn hàng và chức
+năng quản trị. Tất cả chức năng này đều phụ thuộc vào tính chính xác của dữ liệu.
 
-The three tools studied in this report are:
+Ba công cụ được nghiên cứu trong báo cáo:
 
 - DbUnit
 - Database Rider
 - Tonic.ai
 
-The main goal is to understand how these tools help us prepare test data, check
-database results, and create safer test data.
+Mục tiêu chính là tìm hiểu cách các công cụ này giúp chuẩn bị dữ liệu kiểm thử,
+kiểm tra kết quả trong cơ sở dữ liệu và tạo dữ liệu kiểm thử an toàn hơn.
 
-## 2. Tool Overview
+## 2. Tổng quan công cụ
 
-| Tool | Main purpose | Used for |
+| Công cụ | Mục đích chính | Trường hợp sử dụng |
 | --- | --- | --- |
-| DbUnit | Setup database by dataset file and check data | Database unit and integration test |
-| Database Rider | Make DbUnit-style tests easier to write | Easier database test maintenance |
-| Tonic.ai | Create safe test data and mask sensitive data | Test data management |
+| DbUnit | Thiết lập trạng thái cơ sở dữ liệu bằng dataset và kiểm tra dữ liệu | Kiểm thử đơn vị và kiểm thử tích hợp cơ sở dữ liệu |
+| Database Rider | Giúp viết và duy trì kiểm thử kiểu DbUnit dễ hơn | Kiểm thử cơ sở dữ liệu bằng annotation và YAML |
+| Tonic.ai | Tạo hoặc che dữ liệu nhạy cảm | Quản lý dữ liệu kiểm thử an toàn |
 
 ### DbUnit
 
-DbUnit is a Java testing library. It can load a dataset into a database before a
-test runs. After the test runs, we can check if the database contains the
-expected data.
+DbUnit là thư viện kiểm thử dành cho Java. Công cụ có thể nạp dataset vào cơ sở
+dữ liệu trước khi test chạy. Sau khi thực hiện hành động, test có thể kiểm tra cơ
+sở dữ liệu có chứa dữ liệu mong đợi hay không.
 
-In our demo, DbUnit used an XML dataset.
+Trong demo, DbUnit sử dụng dataset XML.
 
 ### Database Rider
 
-Database Rider is built on top of DbUnit. It gives a cleaner way to write
-database tests. It can use YAML datasets, which are easier to read than XML.
+Database Rider được xây dựng trên DbUnit. Công cụ cung cấp annotation và cách
+cấu hình gọn hơn để viết database test. Dataset YAML thường dễ đọc và chỉnh sửa
+hơn XML.
 
-In our demo, Database Rider used a YAML dataset.
+Trong demo, Database Rider sử dụng dataset YAML.
 
 ### Tonic.ai
 
-Tonic.ai is different from DbUnit and Database Rider. It is not mainly an
-assertion tool. It is used to create generated or masked data for testing.
+Tonic.ai khác DbUnit và Database Rider. Đây không phải công cụ assertion chính.
+Tonic được dùng để tạo hoặc che dữ liệu phục vụ kiểm thử.
 
-For EShop, this is useful because the `users` table can contain sensitive data
-such as name, email, password, phone, and address.
+Đối với EShop, điều này hữu ích vì bảng `users` có thể chứa tên, email, mật khẩu,
+số điện thoại và địa chỉ giao hàng. Đây đều là dữ liệu không nên đưa trực tiếp
+vào môi trường demo hoặc test nếu lấy từ người dùng thật.
 
-## 3. Installation and Setup
+## 3. Kiểm thử cơ sở dữ liệu quan hệ và NoSQL
 
-The basic setup used for the seminar was:
+Kiểm thử cơ sở dữ liệu quan hệ và NoSQL có cùng mục tiêu tổng quát: chuẩn bị một
+trạng thái có kiểm soát, thực hiện hành động, kiểm tra dữ liệu đã lưu và dọn dẹp
+môi trường test. Tuy nhiên, rủi ro và nội dung assertion khác nhau do hai mô hình
+tổ chức và phân phối dữ liệu theo cách khác nhau.
 
-1. Install Node.js for the EShop backend and frontend.
-2. Install Java and Maven for DbUnit and Database Rider demos.
-3. Install SQLite tools for checking the EShop database.
-4. Clone or open the EShop project.
-5. Run `npm install` in the Node.js parts of the project.
-6. Run `node database.js` to create and seed the SQLite database.
-7. Create a DbUnit demo Maven project.
-8. Create a Database Rider demo Maven project.
-9. Prepare a Tonic.ai workspace or Tonic.ai generated-data workflow.
+### 3.1 Kiểm thử cơ sở dữ liệu quan hệ
 
-The EShop backend database is:
+Kiểm thử cơ sở dữ liệu quan hệ thường bao gồm:
+
+- Kiểm tra định nghĩa bảng, cột và kiểu dữ liệu.
+- Kiểm tra khóa chính, khóa ngoại, `UNIQUE`, `NOT NULL` và `CHECK`.
+- Kiểm tra thao tác thêm, sửa, xóa và truy vấn.
+- Kiểm tra phép nối và quan hệ giữa các bảng.
+- Kiểm tra transaction, commit và rollback theo ACID.
+- Kiểm tra index và kế hoạch thực thi SQL.
+- Kiểm tra migration và khả năng tương thích ngược.
+- Kiểm tra stored procedure, trigger và view nếu hệ thống sử dụng.
+
+Trong mô hình quan hệ, database engine thường có thể trực tiếp từ chối dữ liệu
+không hợp lệ. Ví dụ, khóa ngoại có thể ngăn `orders.user_id` tham chiếu đến một
+người dùng không tồn tại.
+
+### 3.2 Kiểm thử cơ sở dữ liệu NoSQL
+
+NoSQL là một nhóm rộng gồm document database, key-value store, wide-column và
+graph database. Với document database như MongoDB, công việc kiểm thử thường
+bao gồm:
+
+- Kiểm tra cấu trúc document, field bắt buộc, kiểu dữ liệu, object lồng nhau và mảng.
+- Kiểm tra schema validation nếu database hỗ trợ.
+- Kiểm tra embedded document và reference giữa các collection.
+- Kiểm tra tính toàn vẹn ở tầng ứng dụng khi không có foreign key.
+- Kiểm tra document query và aggregation pipeline.
+- Kiểm tra phạm vi atomic update và transaction.
+- Kiểm tra strong consistency hoặc eventual consistency sau khi ghi.
+- Kiểm tra partition key, shard key, hot partition và phân phối dữ liệu.
+- Kiểm tra secondary index, unique index và TTL index.
+- Kiểm tra nhiều phiên bản document cùng tồn tại khi schema thay đổi.
+- Kiểm tra retry, idempotency, replication và failover.
+
+Trong hệ thống eventual consistency, assertion chạy ngay sau thao tác ghi có thể
+không ổn định. Test nên dùng cơ chế retry có giới hạn và timeout rõ ràng thay vì
+`sleep` cố định.
+
+### 3.3 Khác biệt chính
+
+| Nội dung kiểm thử | Cơ sở dữ liệu quan hệ | Cơ sở dữ liệu NoSQL |
+| --- | --- | --- |
+| Cấu trúc dữ liệu | Bảng, dòng và cột | Collection, document, key hoặc graph |
+| Schema | Thường khai báo và được database bắt buộc | Linh hoạt, tùy chọn hoặc do ứng dụng kiểm soát |
+| Quan hệ | Foreign key và join | Embedded data hoặc reference do ứng dụng quản lý |
+| Transaction | ACID transaction phổ biến | Phụ thuộc database và phạm vi thao tác |
+| Tính nhất quán | Thường strong consistency trong một database | Strong, eventual hoặc có thể cấu hình |
+| Phân phối | Thường kiểm thử như một dịch vụ database | Partition, shard và replication là rủi ro chính |
+| Thay đổi schema | Migration theo thứ tự | Nhiều phiên bản document có thể cùng tồn tại |
+| Assertion điển hình | Dòng, constraint, join và transaction | Document, consistency, partition và aggregation |
+
+### 3.4 Khả năng áp dụng của ba công cụ
+
+| Công cụ | Cơ sở dữ liệu quan hệ | Cơ sở dữ liệu NoSQL |
+| --- | --- | --- |
+| DbUnit | Phù hợp trực tiếp thông qua JDBC và table dataset | Không hỗ trợ native cho document hoặc key-value |
+| Database Rider | Phù hợp vì sử dụng DbUnit và JDBC | Không hỗ trợ NoSQL native |
+| Tonic Structural | Hỗ trợ nhiều relational connector | Hỗ trợ có chọn lọc, gồm MongoDB và Amazon DynamoDB |
+
+DbUnit và Database Rider nên được xem là công cụ kiểm thử cơ sở dữ liệu quan hệ.
+Một dự án NoSQL thường cần native driver của database, test container hoặc test
+instance riêng, cùng assertion hiểu document, consistency và partition.
+
+Tonic Structural có thể chuẩn bị dữ liệu an toàn cho một số NoSQL connector,
+nhưng vẫn cần framework test khác để chứng minh ứng dụng hoạt động đúng.
+
+## 4. Cài đặt và thiết lập
+
+Thiết lập cơ bản dùng cho seminar:
+
+1. Cài Node.js cho backend và frontend EShop.
+2. Cài Java và Maven cho demo DbUnit và Database Rider.
+3. Cài công cụ SQLite để xem và truy vấn database EShop.
+4. Clone hoặc mở dự án EShop.
+5. Chạy `npm install` trong các phần Node.js của dự án.
+6. Chạy `node database.js` để tạo và seed SQLite database.
+7. Tạo Maven project dùng cho DbUnit.
+8. Tạo Maven project dùng cho Database Rider.
+9. Chuẩn bị workspace hoặc quy trình tạo dữ liệu trên Tonic.ai.
+
+Database backend của EShop:
 
 ```text
 eshop-sut/backend/database.sqlite
 ```
 
-The EShop backend uses SQLite. The main database seed file is:
+File khởi tạo và seed database:
 
 ```text
 eshop-sut/backend/database.js
 ```
 
-The database includes tables such as:
+Các bảng chính bao gồm:
 
 - `users`
 - `categories`
@@ -89,13 +166,13 @@ The database includes tables such as:
 - `order_items`
 - `coupons`
 
-## 4. Hands-on Practice and Demo Steps
+## 5. Thực hành và các bước demo
 
-### 4.1 DbUnit Demo
+### 5.1 Demo DbUnit
 
-For DbUnit, we created a small Maven test project.
+Nhóm tạo một Maven test project nhỏ cho DbUnit.
 
-Main files:
+Các file chính:
 
 ```text
 dbunit-demo/pom.xml
@@ -103,36 +180,36 @@ dbunit-demo/src/test/resources/datasets/initial-dataset.xml
 dbunit-demo/src/test/java/com/eshop/dbunit/EshopDbUnitTest.java
 ```
 
-The XML dataset contained sample data for tables such as `users`,
-`categories`, and `products`.
+Dataset XML chứa dữ liệu mẫu cho các bảng như `users`, `categories` và
+`products`.
 
-The test used DbUnit to:
+Test thực hiện các bước:
 
-1. Read the XML dataset.
-2. Reset the database with `CLEAN_INSERT`.
-3. Query the database with JDBC.
-4. Assert that the expected data existed.
+1. Đọc dataset XML.
+2. Đưa database về trạng thái đã biết bằng `CLEAN_INSERT`.
+3. Truy vấn database bằng JDBC.
+4. Assert dữ liệu mong đợi tồn tại.
 
-Command:
+Lệnh chạy:
 
 ```bash
 mvn test
 ```
 
-Observed result:
+Kết quả quan sát:
 
 ```text
 Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
-This means the DbUnit demo passed.
+Kết quả này cho thấy demo DbUnit đã chạy thành công.
 
-### 4.2 Database Rider Demo
+### 5.2 Demo Database Rider
 
-For Database Rider, we created another small Maven test project.
+Nhóm tạo một Maven project khác cho Database Rider.
 
-Main files:
+Các file chính:
 
 ```text
 database-rider-demo/pom.xml
@@ -140,295 +217,367 @@ database-rider-demo/src/test/resources/datasets/eshop-users.yml
 database-rider-demo/src/test/java/com/eshop/databaserider/EshopDatabaseRiderTest.java
 ```
 
-The YAML dataset contained sample `users`, `categories`, and `products`.
+Dataset YAML chứa dữ liệu mẫu cho `users`, `categories` và `products`.
 
-The test used Database Rider to:
+Test thực hiện các bước:
 
-1. Read the YAML dataset.
-2. Load the dataset into SQLite.
-3. Query the `users` table.
-4. Assert that the table had the expected number of rows.
+1. Đọc dataset YAML.
+2. Nạp dataset vào SQLite.
+3. Truy vấn bảng `users`.
+4. Assert bảng có đúng số dòng mong đợi.
 
-Command:
+Lệnh chạy:
 
 ```bash
 mvn test
 ```
 
-Observed result:
+Kết quả quan sát:
 
 ```text
 Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
-This means the Database Rider demo passed.
+Kết quả này cho thấy demo Database Rider đã chạy thành công.
 
-### 4.3 Tonic.ai Demo
+### 5.3 Demo Tonic.ai
 
-The planned Tonic.ai Structural workflow was:
+Quy trình Tonic.ai Structural:
 
-1. Reset the EShop SQLite database.
-2. Export tables such as `users`, `products`, `coupons`, and `orders` to CSV.
-3. Upload CSV files to Tonic.ai.
-4. Create file groups.
-5. Configure generators for sensitive columns.
-6. Run data generation.
-7. Download generated CSV files.
-8. Compare the original data with the generated data.
+1. Reset SQLite database của EShop.
+2. Export `users`, `products`, `coupons` và `orders` sang CSV.
+3. Upload từng CSV vào Tonic.ai.
+4. Tạo file group riêng cho mỗi schema.
+5. Cấu hình generator cho các cột nhạy cảm.
+6. Chạy data generation.
+7. Tải các file CSV đã tạo về máy.
+8. So sánh dữ liệu gốc và dữ liệu generated.
 
-Important sensitive columns in the `users` table:
+Các cột nhạy cảm trong `users`:
 
-| Column | Why it is sensitive |
+| Cột | Lý do nhạy cảm |
 | --- | --- |
-| `name` | Real user name |
-| `email` | Personal identifier |
-| `password` | Login secret |
-| `shipping_address` | Personal address |
-| `phone` | Personal phone number |
+| `name` | Tên người dùng |
+| `email` | Thông tin định danh cá nhân |
+| `password` | Bí mật đăng nhập |
+| `shipping_address` | Địa chỉ cá nhân |
+| `phone` | Số điện thoại cá nhân |
 
-Columns such as `id`, `role`, and foreign keys should usually be kept stable,
-because the application needs them to preserve relationships between tables.
+Các cột như `id`, `role` và foreign key nên được giữ ổn định để không phá vỡ
+quan hệ giữa các bảng.
 
-In the seminar demo, Tonic.ai was used for the `users` data. The main check was
-to compare the original CSV with the generated CSV and confirm that sensitive
-values were changed.
+Trong seminar, Tonic.ai được dùng cho dữ liệu `users`. Kiểm tra chính là so sánh
+CSV ban đầu với CSV generated và xác nhận các giá trị nhạy cảm đã thay đổi.
 
-## 5. EShop Scenario Tested
+## 6. Kịch bản kiểm thử trên EShop
 
-The seminar demo focused on simple database testing scenarios that match the
-three tools.
+### Kịch bản A: Seed và kiểm tra người dùng
 
-### Scenario A: Seed and Check Users
-
-For DbUnit and Database Rider, the scenario was:
+Kịch bản cho DbUnit và Database Rider:
 
 ```text
-Load known test data into the EShop SQLite database and check the users table.
+Nạp dữ liệu test đã biết vào SQLite database và kiểm tra bảng users.
 ```
 
-This scenario is useful because login, checkout, and profile features all need
-valid users. If the `users` table is wrong, many EShop features cannot work.
+Kết quả mong đợi:
 
-Expected result:
+1. Database được reset về trạng thái có kiểm soát.
+2. Dataset tạo một admin và một người dùng test thông thường.
+3. Truy vấn xác nhận bảng `users` có dữ liệu mong đợi.
 
-1. The database is reset to a known state.
-2. The dataset creates two users: one admin user and one normal test user.
-3. The test query confirms that the `users` table has the expected data.
-
-DbUnit did this with an XML dataset:
+DbUnit sử dụng XML dataset:
 
 ```text
 src/test/resources/datasets/initial-dataset.xml
 ```
 
-Database Rider did the same idea with a YAML dataset:
+Database Rider sử dụng YAML dataset:
 
 ```text
 src/test/resources/datasets/eshop-users.yml
 ```
 
-### Scenario B: Checkout and Order Check
+### Kịch bản B: Checkout và kiểm tra đơn hàng
 
-The EShop application demo scenario was:
+Kịch bản EShop:
 
 ```text
-Login as a test user, add a product to cart, checkout, then check the orders table.
+Đăng nhập, thêm sản phẩm vào giỏ hàng, checkout, sau đó kiểm tra bảng orders.
 ```
 
-Expected result after checkout:
+Kết quả mong đợi sau checkout:
 
-1. The `orders` table has a new order.
-2. The `user_id` belongs to the logged-in test user.
-3. The `total_amount` matches the cart total.
-4. The default order `status` is `pending`.
+1. Bảng `orders` có đơn hàng mới.
+2. `user_id` thuộc về người dùng đang đăng nhập.
+3. `total_amount` khớp tổng tiền giỏ hàng.
+4. `status` mặc định là `pending`.
 
-The database can be checked with SQL such as:
+Có thể kiểm tra bằng SQL:
 
 ```sql
 SELECT COUNT(*) FROM orders;
 SELECT user_id, total_amount, status FROM orders;
 ```
 
-### Scenario C: Mask Sensitive User Data
+### Kịch bản C: Che dữ liệu người dùng nhạy cảm
 
-For Tonic.ai, the scenario was:
+Kịch bản cho Tonic.ai:
 
 ```text
-Export users from SQLite to CSV, upload the CSV to Tonic.ai, mask sensitive columns, and download generated CSV.
+Export users sang CSV, upload lên Tonic.ai, che các cột nhạy cảm và tải CSV generated.
 ```
 
-Expected result:
+Kết quả mong đợi:
 
-1. `name`, `email`, `password`, `shipping_address`, and `phone` are changed.
-2. The generated values still look like realistic test data.
-3. Important relationship columns such as `id` are kept stable.
-4. The generated data can be used as safer test data for a demo or staging
-   environment.
+1. `name`, `email`, `password`, `shipping_address` và `phone` được thay đổi.
+2. Dữ liệu generated vẫn có định dạng phù hợp để test.
+3. Cột quan hệ như `id` được giữ ổn định.
+4. Dữ liệu có thể dùng an toàn hơn cho demo hoặc staging.
 
-## 6. Comparison
+## 7. So sánh ba công cụ
 
-| Criteria | DbUnit | Database Rider | Tonic.ai |
+| Tiêu chí | DbUnit | Database Rider | Tonic.ai |
 | --- | --- | --- | --- |
-| Tool type | Testing library | Testing library wrapper | Test data platform |
-| Common input | XML dataset | YAML dataset | CSV or database source |
-| Main output | Test result | Test result | Generated data |
-| Ease of use | Medium | Easier than DbUnit | Easy after learning the UI |
-| Can assert database results | Yes | Yes | No, not by itself |
-| Can mask sensitive data | No | No | Yes |
-| Best use in EShop | Reset and check database state | Cleaner database tests | Safer generated test data |
+| Loại công cụ | Thư viện kiểm thử | Lớp tiện ích trên DbUnit | Nền tảng dữ liệu kiểm thử |
+| Input phổ biến | XML dataset | YAML dataset | CSV hoặc database source |
+| Output chính | Kết quả test | Kết quả test | Dữ liệu generated |
+| Độ dễ sử dụng | Trung bình | Dễ hơn DbUnit | Dễ sau khi quen giao diện |
+| Assert kết quả database | Có | Có | Không tự thực hiện |
+| Che dữ liệu nhạy cảm | Không | Không | Có |
+| Vai trò trong EShop | Reset và kiểm tra database | Database test dễ bảo trì hơn | Tạo dữ liệu test an toàn |
 
-DbUnit and Database Rider are used to check if the database is correct.
-Tonic.ai is used to create safer test data. Because of this, the tools support
-each other, but they do not replace each other.
+DbUnit và Database Rider kiểm tra database có đúng hay không. Tonic.ai tạo dữ
+liệu test an toàn hơn. Ba công cụ bổ trợ nhưng không thay thế nhau.
 
-## 7. Strengths and Limitations
+## 8. Phân tích khả năng tái sử dụng
+
+Demo đầu tiên là proof of concept, chưa phải testing framework có thể tái sử
+dụng trực tiếp. Code hiện tại có các phần hard-code:
+
+- JDBC URL, username và password của HSQLDB nằm trong class test.
+- Lệnh `CREATE TABLE` được viết trực tiếp trong Java.
+- Tên bảng được cố định là `USER_ACCOUNT` và `PRODUCT`.
+- Đường dẫn dataset cố định trong setup hoặc annotation.
+- SQL query và expected row count bằng `2` được ghi trực tiếp.
+- Package Java và metadata Maven còn gắn với EShop.
+
+### 8.1 Ước lượng khả năng tái sử dụng hiện tại
+
+Các tỷ lệ sau là ước lượng kỹ thuật dựa trên cấu trúc code, không phải kết quả
+benchmark đã đo lường.
+
+| Thành phần | Khả năng dùng lại trong dự án Java relational khác |
+| --- | --- |
+| Maven dependencies | 80-90% |
+| Annotation DbUnit và Database Rider | 80-90% |
+| Connection và test lifecycle | 50-70% |
+| Cách seed dataset và assertion | 60-80% |
+| Schema, tên bảng, SQL và dataset | Gần 0% |
+| Business assertion riêng của dự án | Gần 0% |
+
+Tổng thể, khoảng 30-40% code hiện tại có thể copy trực tiếp sang một dự án
+Java/JDBC khác. Phần dùng lại được chủ yếu là cấu hình framework và vòng đời
+test. Schema, dataset, query và business assertion phải thay đổi vì chúng mô tả
+hệ thống mới.
+
+Đối với dự án NoSQL, gần như không thể dùng trực tiếp implementation DbUnit hoặc
+Database Rider vì hai công cụ phụ thuộc JDBC và mô hình bảng. Phần có thể giữ
+lại là quy trình tổng quát: arrange data, thực hiện thao tác, kiểm tra trạng thái
+đã lưu và cleanup.
+
+### 8.2 Refactor để tăng khả năng tái sử dụng
+
+Testing harness nên tách hạ tầng khỏi test case theo domain:
+
+```text
+database-testing/
+|-- src/test/java/support/
+|   |-- DatabaseConnectionFactory.java
+|   `-- DatabaseTestSupport.java
+|-- src/test/java/tests/
+|   |-- DbUnitDatasetTest.java
+|   `-- DatabaseRiderDatasetTest.java
+`-- src/test/resources/
+    |-- database-test.properties
+    |-- schema.sql
+    `-- datasets/
+        |-- seed.yml
+        `-- expected.yml
+```
+
+Thông tin kết nối nên lấy từ configuration hoặc biến môi trường:
+
+```properties
+db.driver=${DB_DRIVER}
+db.url=${DB_URL}
+db.user=${DB_USER}
+db.password=${DB_PASSWORD}
+```
+
+Khi chuyển sang một dự án relational khác, nhóm chỉ cần thay driver, URL,
+`schema.sql`, dataset và business assertion. Sau refactor, ước lượng 70-80% test
+harness có thể dùng lại trong dự án Java relational khác.
+
+Business assertion vẫn phải riêng cho từng dự án vì đây chính là phần xác định
+hành vi đúng của hệ thống. Nếu cố biến mọi assertion thành generic, test sẽ mất
+ý nghĩa.
+
+## 9. Ưu điểm và hạn chế
 
 ### DbUnit
 
-Strengths:
+Ưu điểm:
 
-- It gives strong control over database state.
-- It is good for learning the basic idea of database testing.
-- It can reset data before tests.
+- Kiểm soát trạng thái database tốt.
+- Thể hiện rõ nền tảng của database testing.
+- Có thể reset dữ liệu trước mỗi test.
 
-Limitations:
+Hạn chế:
 
-- XML datasets can be long.
-- The setup code is more low-level.
-- Students must understand Java, JDBC, and database tables.
+- XML dataset có thể dài.
+- Setup code tương đối thấp cấp.
+- Cần hiểu Java, JDBC và database schema.
+- Không hỗ trợ NoSQL native.
 
 ### Database Rider
 
-Strengths:
+Ưu điểm:
 
-- YAML datasets are easier to read.
-- It reduces some setup code compared with plain DbUnit.
-- It is good for maintainable database tests.
+- YAML dễ đọc hơn XML.
+- Giảm setup code so với DbUnit thuần.
+- Phù hợp với database test cần bảo trì lâu dài.
 
-Limitations:
+Hạn chế:
 
-- It still requires Java and Maven.
-- It still requires knowledge of DbUnit concepts.
-- It is not a replacement for understanding the database schema.
+- Vẫn cần Java và Maven.
+- Vẫn phụ thuộc các khái niệm của DbUnit.
+- Không thay thế việc hiểu database schema.
+- Không hỗ trợ NoSQL native.
 
 ### Tonic.ai
 
-Strengths:
+Ưu điểm:
 
-- It can mask sensitive data.
-- It can generate test data that looks realistic.
-- It is useful when real production data should not be used directly.
+- Có thể che dữ liệu nhạy cảm.
+- Tạo dữ liệu test có định dạng thực tế.
+- Hỗ trợ relational và một số NoSQL connector.
+- Giảm nhu cầu sử dụng trực tiếp production data.
 
-Limitations:
+Hạn chế:
 
-- It is not a test assertion tool.
-- It needs correct generator configuration.
-- If IDs or foreign keys are changed incorrectly, relationships can break.
-- If emails or passwords are masked, default demo login accounts may stop
-  working.
+- Không phải công cụ assertion.
+- Cần cấu hình generator chính xác.
+- Thay đổi sai ID hoặc foreign key có thể phá quan hệ.
+- Che email hoặc password có thể làm tài khoản demo không đăng nhập được.
+- Một số connector và tính năng phụ thuộc gói license.
 
-## 8. Problems Encountered
+## 10. Các vấn đề đã gặp
 
-During the work, these problems were recorded:
-
-| Problem | Simple explanation |
+| Vấn đề | Nguyên nhân hoặc ý nghĩa |
 | --- | --- |
-| Missing `sqlite3` module | The Node.js dependency was not installed yet |
-| Maven `pom.xml` parse error | Extra invalid text was accidentally copied into `pom.xml` |
-| DbUnit order test failed | The expected order did not exist yet |
-| Tonic.ai multiple schemas issue | Different CSV schemas were uploaded into one file group |
-| `orders.csv` was empty | No orders existed after reset seed data |
-| Masked email/password affected login | Generated credentials may not match the demo login flow |
-| Database Rider import/package issue | Some Java import names had to match the Database Rider version |
+| Thiếu module `sqlite3` | Node.js dependency chưa được cài |
+| Maven không parse được `pom.xml` | Có nội dung không hợp lệ phía sau thẻ đóng XML |
+| DbUnit order test thất bại | Dữ liệu order mong đợi chưa tồn tại |
+| Tonic báo multiple schemas | Các CSV khác cấu trúc được đưa vào cùng file group |
+| `orders.csv` rỗng | Seed data chưa có đơn hàng |
+| Email/password bị mask | Credential generated không còn khớp luồng đăng nhập demo |
+| Database Rider import/package lỗi | Tên import phải phù hợp phiên bản Database Rider |
 
-## 9. Lessons Learned
+## 11. Bài học rút ra
 
-Database testing needs stable data. If the database changes randomly, tests
-become hard to trust.
+Database testing cần dữ liệu ổn định. Nếu trạng thái database thay đổi không kiểm
+soát, test sẽ khó lặp lại và khó tin cậy.
 
-DbUnit and Database Rider are useful when we want to prepare a known database
-state before testing. They are also useful when we want to check the database
-after an action.
+DbUnit và Database Rider hữu ích khi cần đưa database về trạng thái biết trước
+và kiểm tra trạng thái sau hành động. Tonic.ai hữu ích khi cần dữ liệu test nhưng
+không nên dùng thông tin nhạy cảm thật.
 
-Tonic.ai is useful when we need test data but should not use real sensitive
-data. It helps protect privacy by replacing values such as names, emails,
-addresses, and phone numbers.
+Quan hệ khóa ngoại cần được bảo toàn. Ví dụ, nếu `orders.user_id` trỏ đến
+`users.id`, việc random ID không kiểm soát sẽ phá dữ liệu.
 
-Foreign key relationships are important. For example, if `orders.user_id`
-points to `users.id`, we should be careful when generating or changing IDs.
+Database test có thể chứng minh những điều UI screenshot không thể hiện. Giao
+diện có thể báo checkout thành công, nhưng database assertion mới xác nhận một
+order được tạo với đúng user, tổng tiền và trạng thái.
 
-Database tests can check things that UI screenshots alone cannot prove. For
-example, after checkout, the UI may show success, but the database test can
-confirm that a row was really added to the `orders` table.
+Relational và NoSQL dùng cùng vòng đời kiểm thử nhưng có failure model khác
+nhau. NoSQL test cần chú ý thêm consistency, partition, replication và schema
+evolution.
 
-## 10. Conclusion
+Code test không thể generic hoàn toàn. Nên tái sử dụng test infrastructure và
+workflow, còn schema, dataset và business assertion phải được thiết kế theo
+từng project.
 
-DbUnit is useful for understanding the foundation of database testing. It shows
-how to load a dataset and check database results.
+## 12. Kết luận
 
-Database Rider is easier to maintain because YAML datasets are cleaner and the
-testing workflow is shorter.
+DbUnit giúp hiểu nền tảng database testing thông qua dataset, reset database và
+assertion.
 
-Tonic.ai is useful for safe test data. It helps generate or mask data so testing
-does not need to expose sensitive information.
+Database Rider giúp cùng workflow đó dễ đọc và dễ bảo trì hơn bằng annotation
+và YAML.
 
-For EShop, the three tools work best together:
+Tonic.ai giúp tạo dữ liệu test an toàn, giảm nguy cơ lộ thông tin nhạy cảm.
 
-- DbUnit and Database Rider help verify database behavior.
-- Tonic.ai helps prepare safer test data.
-- The EShop checkout scenario shows why checking the database after a user
-  action is useful.
+Đối với EShop:
 
-## 11. Evidence and Appendix
+- DbUnit và Database Rider kiểm tra hành vi của relational database.
+- Tonic.ai chuẩn bị dữ liệu an toàn hơn.
+- Kịch bản checkout cho thấy vì sao cần kiểm tra database sau thao tác người dùng.
 
-Supporting documents:
+DbUnit và Database Rider là công cụ relational, trong khi Tonic Structural hỗ
+trợ relational và một số NoSQL connector. Giải pháp có khả năng chuyển đổi giữa
+các dự án nên tái sử dụng testing harness và workflow, đồng thời giữ schema,
+dataset và business assertion riêng cho từng hệ thống.
+
+## 13. Bằng chứng và phụ lục
+
+Các tài liệu hỗ trợ:
 
 - User Guide
 - DbUnit Step-by-Step Guide
 - Database Rider Step-by-Step Guide
 - Tonic.ai Testing Guide
 - AI Audit Report
+- Activity Worksheet
+- Pitch Script
 
-Seminar screenshot evidence:
+### Bằng chứng DbUnit
 
-### DbUnit Evidence
+![Bằng chứng DbUnit 1](Duc/evidence/DbUnit/DbUnit1.png)
 
-![DbUnit evidence 1](Duc/evidence/DbUnit/DbUnit1.png)
+![Bằng chứng DbUnit 2](Duc/evidence/DbUnit/DbUnit2.png)
 
-![DbUnit evidence 2](Duc/evidence/DbUnit/DbUnit2.png)
+![Bằng chứng DbUnit 3](Duc/evidence/DbUnit/DbUnit3.png)
 
-![DbUnit evidence 3](Duc/evidence/DbUnit/DbUnit3.png)
+![Bằng chứng DbUnit 4](Duc/evidence/DbUnit/DbUnit4.png)
 
-![DbUnit evidence 4](Duc/evidence/DbUnit/DbUnit4.png)
+### Bằng chứng Database Rider
 
-### Database Rider Evidence
+![Bằng chứng Database Rider 1](Duc/evidence/DatabaseRider/DatabaseRider1.png)
 
-![Database Rider evidence 1](Duc/evidence/DatabaseRider/DatabaseRider1.png)
+![Bằng chứng Database Rider 2](Duc/evidence/DatabaseRider/DatabaseRider2.png)
 
-![Database Rider evidence 2](Duc/evidence/DatabaseRider/DatabaseRider2.png)
+### Bằng chứng Tonic.ai
 
-### Tonic.ai Evidence
+![Bằng chứng Tonic.ai 1](<Duc/evidence/Tonic AI/Tonic1.png>)
 
-![Tonic.ai evidence 1](<Duc/evidence/Tonic AI/Tonic1.png>)
+![Bằng chứng Tonic.ai 2](<Duc/evidence/Tonic AI/Tonic2.png>)
 
-![Tonic.ai evidence 2](<Duc/evidence/Tonic AI/Tonic2.png>)
+![Bằng chứng Tonic.ai 3](<Duc/evidence/Tonic AI/Tonic3.png>)
 
-![Tonic.ai evidence 3](<Duc/evidence/Tonic AI/Tonic3.png>)
+![Bằng chứng Tonic.ai 4](<Duc/evidence/Tonic AI/Tonic4.png>)
 
-![Tonic.ai evidence 4](<Duc/evidence/Tonic AI/Tonic4.png>)
+![Bằng chứng Tonic.ai 5](<Duc/evidence/Tonic AI/Tonic5.png>)
 
-![Tonic.ai evidence 5](<Duc/evidence/Tonic AI/Tonic5.png>)
+![Bằng chứng Tonic.ai 6](<Duc/evidence/Tonic AI/Tonic6.png>)
 
-![Tonic.ai evidence 6](<Duc/evidence/Tonic AI/Tonic6.png>)
+![Bằng chứng Tonic.ai 7](<Duc/evidence/Tonic AI/Tonic7.png>)
 
-![Tonic.ai evidence 7](<Duc/evidence/Tonic AI/Tonic7.png>)
+![Bằng chứng Tonic.ai 8](<Duc/evidence/Tonic AI/Tonic8.png>)
 
-![Tonic.ai evidence 8](<Duc/evidence/Tonic AI/Tonic8.png>)
+![Bằng chứng Tonic.ai 9](<Duc/evidence/Tonic AI/Tonic9.png>)
 
-![Tonic.ai evidence 9](<Duc/evidence/Tonic AI/Tonic9.png>)
-
-Commands used for evidence:
+Các lệnh dùng để tạo bằng chứng:
 
 ```bash
 cd dbunit-demo
@@ -445,8 +594,10 @@ cd eshop-sut/backend
 node database.js
 ```
 
-## 12. References
+## 14. Tài liệu tham khảo
 
 - DbUnit: https://www.dbunit.org/
 - Database Rider: https://database-rider.github.io/database-rider/
 - Tonic.ai: https://www.tonic.ai/
+- Tonic Structural data connectors: https://docs.tonic.ai/app/setting-up-your-database/database-connectors
+- Tonic Structural MongoDB support: https://docs.tonic.ai/app/setting-up-your-database/mongodb
