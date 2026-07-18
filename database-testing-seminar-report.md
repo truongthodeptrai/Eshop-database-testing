@@ -382,19 +382,13 @@ For EShop, the three tools work best together:
 
 ## 11. Evidence and Appendix
 
-Main guide files:
+Supporting documents:
 
-```text
-Eshop-database-testing/Duc/DBUNIT_STEP_BY_STEP_GUIDE.md
-Eshop-database-testing/Duc/DATABASE_RIDER_STEP_BY_STEP_GUIDE.md
-Eshop-database-testing/Duc/TONIC_AI_TESTING_GUIDE.md
-```
-
-Audit file:
-
-```text
-Eshop-database-testing/Duc/AI_Audit_Report.md
-```
+- User Guide
+- DbUnit Step-by-Step Guide
+- Database Rider Step-by-Step Guide
+- Tonic.ai Testing Guide
+- AI Audit Report
 
 Seminar screenshot evidence:
 
@@ -451,7 +445,7 @@ cd eshop-sut/backend
 node database.js
 ```
 
-References:
+## 12. References
 
 - DbUnit: https://www.dbunit.org/
 - Database Rider: https://database-rider.github.io/database-rider/
