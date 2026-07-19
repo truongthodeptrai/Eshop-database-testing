@@ -1,0 +1,10 @@
+user:
+  - username: "alice"
+    email: "alice@example.com"
+    about_me: "I am Alice, updated from web UI"
+  - username: "bob"
+    email: "bob@example.com"
+    about_me: null
+post:
+  - body: "Hello from microblog UI database test"
+followers: []

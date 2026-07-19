@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+  <SAMPLE_RECORD ID="1" LABEL="first sample" VALUE="alpha"/>
+  <SAMPLE_RECORD ID="2" LABEL="second sample" VALUE="beta"/>
+</dataset>
