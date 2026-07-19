@@ -66,14 +66,14 @@ tổ chức và phân phối dữ liệu theo những cách khác nhau.
 
 Kiểm thử cơ sở dữ liệu quan hệ thường kiểm tra:
 
-- Định nghĩa bảng và cột.
-- Khóa chính, khóa ngoại, ràng buộc duy nhất, `NOT NULL` và `CHECK`.
-- Hành vi insert, update, delete và query.
-- Phép join và quan hệ giữa các bảng.
-- Giao dịch ACID, commit và rollback.
-- Index và SQL execution plan.
-- Database migration và khả năng tương thích ngược.
-- Stored procedure, trigger và view nếu ứng dụng sử dụng chúng.
+- Định nghĩa bảng và cột. Ví dụ: bảng `users` có cột `email` kiểu `TEXT` và cột `id` kiểu số.
+- Khóa chính, khóa ngoại, ràng buộc duy nhất, `NOT NULL` và `CHECK`. Ví dụ: không cho tạo order với `user_id` không tồn tại hoặc email bị trùng.
+- Hành vi `INSERT`, `UPDATE`, `DELETE` và query. Ví dụ: sau khi checkout, một dòng mới phải được thêm vào bảng `orders`.
+- Phép `JOIN` và quan hệ giữa các bảng. Ví dụ: kết hợp `orders` với `users` để biết order thuộc về ai.
+- Giao dịch ACID, `COMMIT` và `ROLLBACK`. Ví dụ: nếu trừ tồn kho thất bại thì order cũng phải được hoàn tác.
+- Index và SQL execution plan. Ví dụ: query tìm user theo email phải sử dụng index thay vì quét toàn bộ bảng.
+- Database migration và khả năng tương thích ngược. Ví dụ: thêm cột mới không được làm hỏng code vẫn đọc schema cũ.
+- Stored procedure, trigger và view nếu ứng dụng sử dụng chúng. Ví dụ: trigger tự cập nhật thời gian `updated_at` sau khi sửa order.
 
 Test trên cơ sở dữ liệu quan hệ thường có thể dựa vào database engine để từ chối
 dữ liệu không hợp lệ. Ví dụ, foreign key có thể ngăn `orders.user_id` tham chiếu
@@ -85,17 +85,17 @@ NoSQL là một nhóm rộng. Document database, key-value store, wide-column da
 và graph database có nhu cầu kiểm thử khác nhau. Với document database như
 MongoDB, hoạt động kiểm thử thường bao gồm:
 
-- Kiểm tra cấu trúc document, field bắt buộc, kiểu dữ liệu, object lồng nhau và mảng.
-- Kiểm tra schema validation nếu cơ sở dữ liệu hỗ trợ.
-- Kiểm tra document nhúng và reference giữa các collection.
-- Kiểm tra tính toàn vẹn ở tầng ứng dụng khi không có foreign key.
-- Kiểm tra document query và aggregation pipeline.
-- Kiểm tra phạm vi cập nhật atomic và hành vi transaction.
-- Kiểm tra strong consistency hoặc eventual consistency sau khi ghi.
-- Kiểm tra partition key, shard key, hot partition và phân phối dữ liệu.
-- Kiểm tra secondary index, unique index và TTL index.
-- Kiểm tra nhiều phiên bản document cùng tồn tại trong quá trình thay đổi schema.
-- Kiểm tra retry, idempotency, replication và failover.
+- Kiểm tra cấu trúc document, field bắt buộc, kiểu dữ liệu, object lồng nhau và mảng. Ví dụ: order phải có `status`, `items` phải là một mảng và `total` phải là số.
+- Kiểm tra schema validation nếu cơ sở dữ liệu hỗ trợ. Ví dụ: database từ chối document có `status: 123` nếu `status` chỉ được là chuỗi.
+- Kiểm tra document nhúng và reference giữa các collection. Ví dụ: địa chỉ giao hàng được nhúng trong order, còn `userId` trỏ đến collection `users`.
+- Kiểm tra tính toàn vẹn ở tầng ứng dụng khi không có foreign key. Ví dụ: ứng dụng phải tự từ chối order nếu `userId` không tồn tại.
+- Kiểm tra document query và aggregation pipeline. Ví dụ: lọc order `pending`, sau đó nhóm theo user và tính tổng tiền.
+- Kiểm tra phạm vi cập nhật atomic và hành vi transaction. Ví dụ: tăng số lượng sản phẩm trong giỏ phải được thực hiện trọn vẹn, không cập nhật dở dang.
+- Kiểm tra strong consistency hoặc eventual consistency sau khi ghi. Ví dụ: sau khi đổi status thành `paid`, hệ thống có thể đọc thấy ngay hoặc phải chờ đồng bộ.
+- Kiểm tra partition key, shard key, hot partition và phân phối dữ liệu. Ví dụ: dùng `userId` làm key không tốt có thể khiến một user tạo quá nhiều request trên cùng partition.
+- Kiểm tra secondary index, unique index và TTL index. Ví dụ: tìm user theo email phải nhanh, email không được trùng và session hết hạn phải tự xóa.
+- Kiểm tra nhiều phiên bản document cùng tồn tại trong quá trình thay đổi schema. Ví dụ: ứng dụng phải đọc được cả document cũ có `name` và document mới có `fullName`.
+- Kiểm tra retry, idempotency, replication và failover. Ví dụ: gửi cùng request checkout hai lần chỉ tạo một order, kể cả khi server chuyển sang node dự phòng.
 
 Một assertion chạy ngay sau thao tác ghi có thể đúng với strong consistency
 nhưng không ổn định với eventual consistency. Test nên sử dụng bounded retry và
