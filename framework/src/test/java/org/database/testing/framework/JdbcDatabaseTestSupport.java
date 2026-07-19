@@ -25,6 +25,11 @@ public final class JdbcDatabaseTestSupport {
   }
 
   public Connection openConnection() throws SQLException {
+    String url = config.value("db.url", "");
+    if (url.isBlank()) {
+      throw new IllegalStateException(
+          "Missing db.url. Pass a config file with -Ddatabase.test.config=path/to/config.properties");
+    }
     String driver = config.value("db.driver", "");
     if (!driver.isBlank()) {
       try {
@@ -34,7 +39,7 @@ public final class JdbcDatabaseTestSupport {
       }
     }
     return DriverManager.getConnection(
-        config.value("db.url"),
+        url,
         config.value("db.user", ""),
         config.value("db.password", ""));
   }
@@ -109,6 +114,10 @@ public final class JdbcDatabaseTestSupport {
     InputStream classpathInput = getClass().getResourceAsStream(resource);
     if (classpathInput != null) {
       return classpathInput;
+    }
+    Path path = Path.of(resource);
+    if (Files.exists(path)) {
+      return Files.newInputStream(path);
     }
     return null;
   }

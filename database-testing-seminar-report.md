@@ -384,15 +384,10 @@ framework/
 |   |-- microblog-seed.yml
 |   |-- microblog-ui-expected.yml
 |   `-- microblog-ui-result-check.properties
-|-- src/test/java/org/database/testing/framework/
-|   |-- ConfiguredDatabaseStateTest.java
-|   |-- DatabaseTestConfig.java
-|   `-- JdbcDatabaseTestSupport.java
-`-- src/test/resources/
-    |-- database-test.properties
-    |-- schema.sql
-    `-- dbunit/
-        `-- sample-records.xml
+`-- src/test/java/org/database/testing/framework/
+    |-- ConfiguredDatabaseStateTest.java
+    |-- DatabaseTestConfig.java
+    `-- JdbcDatabaseTestSupport.java
 ```
 
 Vai trò của từng phần:
@@ -400,12 +395,64 @@ Vai trò của từng phần:
 - `DatabaseTestConfig`: đọc file cấu hình `.properties`.
 - `JdbcDatabaseTestSupport`: mở JDBC connection, chạy Database Rider, và dùng DbUnit dataset bên dưới.
 - `ConfiguredDatabaseStateTest`: test runner chung. File này không biết project là microblog hay project khác.
+- File `.properties` trong `examples/`: cấu hình database, file seed, file expected, và các cột cần bỏ qua.
 - `microblog-seed.yml`: dataset dùng để nạp dữ liệu trực tiếp vào database microblog.
 - `microblog-ui-expected.yml`: dataset mô tả kết quả mong đợi sau khi tester thao tác trên giao diện.
 
 Framework không còn dùng SQL assertion. Nghĩa là framework không kiểm tra bằng các câu như `SELECT COUNT(*) ...`. Thay vào đó, framework dùng Database Rider và DbUnit để so sánh database thật với dataset mong đợi.
 
-### 8.2 Cách 1: dùng framework để seed và kiểm tra database
+Framework cũng không còn dùng file mặc định trong `src/test/resources`. Khi chạy test, tester phải truyền rõ file cấu hình bằng `-Ddatabase.test.config=...`. Việc này giúp tránh chạy nhầm trên database mẫu.
+
+### 8.2 Quy trình dùng framework cho website khác có database
+
+Khi gặp một project website mới có database, tester làm theo các bước sau:
+
+1. Xác định database thật mà website đang dùng khi chạy test. Ví dụ: SQLite file, PostgreSQL database, MySQL database.
+2. Xác định JDBC driver cần dùng. `JDBC driver` là thư viện giúp Java nói chuyện với database. Framework đã có sẵn SQLite. Nếu project dùng PostgreSQL hoặc MySQL thì thêm driver tương ứng vào `framework/pom.xml`.
+3. Tạo file cấu hình riêng cho project trong `framework/examples/`, ví dụ `my-project-ui-check.properties`.
+
+```properties
+db.driver=org.sqlite.JDBC
+db.url=jdbc:sqlite:../my-project/app.db
+db.user=
+db.password=
+db.schema=
+db.seed=
+db.assert.dataset=examples/my-project-ui-expected.yml
+db.assert.compare=EQUALS
+db.assert.ignoreColumns=id,created_at,updated_at
+```
+
+4. Tạo dataset seed nếu cần nạp dữ liệu trước khi tester thao tác. Nếu không cần seed thì để `db.seed=` rỗng.
+5. Tạo dataset expected để mô tả dữ liệu mong đợi sau khi tester thao tác trên web. Dataset này nên kiểm tra các cột quan trọng của nghiệp vụ.
+6. Bỏ qua các cột động bằng `db.assert.ignoreColumns`. `Cột động` là cột do hệ thống tự sinh, ví dụ `id`, `created_at`, `updated_at`, `token`, `password_hash`.
+7. Tester chạy ứng dụng web bằng lệnh của chính project đó. Framework không chạy app thay tester.
+
+```bash
+cd /path/to/project
+# cài dependency theo hướng dẫn của project
+# chạy migration hoặc tạo database theo hướng dẫn của project
+# start web app theo hướng dẫn của project
+```
+
+8. Nếu cần seed database trước khi thao tác UI/API, chạy framework với config seed:
+
+```bash
+cd /Users/nguyenphanthangthong/hacking/ctf/learning/Eshop-database-testing/framework
+mvn test -Ddatabase.test.config=examples/my-project-seed.properties
+```
+
+9. Tester thực hiện CRUD trên giao diện hoặc API của website. `CRUD` nghĩa là tạo, đọc, sửa, xóa dữ liệu.
+10. Sau khi thao tác xong, chạy framework để kiểm tra database thật:
+
+```bash
+cd /Users/nguyenphanthangthong/hacking/ctf/learning/Eshop-database-testing/framework
+mvn test -Ddatabase.test.config=examples/my-project-ui-check.properties
+```
+
+11. Đọc kết quả Maven. Nếu `BUILD SUCCESS` thì database đúng với expected dataset. Nếu test fail, Database Rider/DbUnit sẽ báo bảng hoặc cột nào khác dữ liệu mong đợi.
+
+### 8.3 Cách 1: dùng framework để seed và kiểm tra database
 
 Cách này dùng khi tester muốn chuẩn bị dữ liệu nhanh mà không cần nhập bằng giao diện.
 
@@ -449,7 +496,7 @@ Dataset `microblog-seed.yml` có dữ liệu cho 3 bảng:
 
 Nếu database sau khi seed khác dataset này, test sẽ fail.
 
-### 8.3 Cách 2: tester thao tác trên giao diện, framework kiểm tra database
+### 8.4 Cách 2: tester thao tác trên giao diện, framework kiểm tra database
 
 Cách này dùng khi tester muốn kiểm tra dữ liệu sinh ra từ hành động thật trên web.
 
@@ -546,7 +593,7 @@ Framework dùng `examples/microblog-ui-expected.yml` để kiểm tra:
 - Bảng `post` có đúng post vừa tạo.
 - Bảng `followers` rỗng sau bước unfollow.
 
-### 8.4 Vì sao dùng DbUnit được cho cả hai cách?
+### 8.5 Vì sao dùng DbUnit được cho cả hai cách?
 
 DbUnit không bắt buộc phải chạy trước giao diện. DbUnit chỉ cần một database đã có dữ liệu. Vì vậy có hai cách dùng:
 
@@ -563,7 +610,7 @@ db.assert.ignoreColumns=id,password_hash,last_seen,token,token_expiration,last_m
 
 Như vậy test vẫn kiểm tra dữ liệu quan trọng như `username`, `email`, `about_me`, `body`, và bảng `followers`, nhưng không fail vì các giá trị tự sinh.
 
-### 8.5 Kết quả mong đợi
+### 8.6 Kết quả mong đợi
 
 Nếu database đúng, Maven sẽ báo:
 

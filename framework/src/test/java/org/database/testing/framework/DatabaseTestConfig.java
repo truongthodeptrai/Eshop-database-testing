@@ -12,13 +12,18 @@ public final class DatabaseTestConfig {
   private final Properties fileProperties = new Properties();
 
   private DatabaseTestConfig() {
-    String configFile = System.getProperty("database.test.config", "/database-test.properties");
+    String configFile = System.getProperty("database.test.config", "");
+    if (configFile.isBlank()) {
+      return;
+    }
     try (InputStream input = openConfig(configFile)) {
       if (input != null) {
         fileProperties.load(input);
+      } else {
+        throw new IllegalStateException("Missing database test config: " + configFile);
       }
     } catch (IOException exception) {
-      throw new IllegalStateException("Cannot load database-test.properties", exception);
+      throw new IllegalStateException("Cannot load database test config: " + configFile, exception);
     }
   }
 
