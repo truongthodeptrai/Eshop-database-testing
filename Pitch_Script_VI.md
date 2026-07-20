@@ -1,55 +1,101 @@
 # Kịch bản pitch seminar - Database Testing for EShop
 
-Thời lượng mục tiêu: 8-10 phút trước khi chuyển sang live demo.
+Thời lượng mục tiêu: khoảng 8-10 phút, sau đó chuyển sang phần live demo.
 
-## Slide 1 - Database Testing for EShop
+## Slide 1 - Kiểm thử cơ sở dữ liệu cho EShop
 
-Chào thầy và các bạn. Hôm nay nhóm mình trình bày về database testing thông qua ba công cụ là DbUnit, Database Rider và Tonic.ai. Hệ thống demo là EShop, sử dụng Node.js và SQLite. Ngoài việc demo ba tool, nhóm cũng làm rõ chúng phù hợp với relational database hay NoSQL, và code demo có thể tái sử dụng được bao nhiêu khi chuyển sang project khác.
+Chào thầy và các bạn. Hôm nay nhóm mình trình bày về kiểm thử cơ sở dữ liệu thông qua hệ thống EShop. Nhóm sử dụng ba công cụ: DbUnit, Database Rider và Tonic.ai.
 
-## Slide 2 - Database bugs can survive a successful UI flow
+EShop là một ứng dụng bán hàng sử dụng Node.js và SQLite. Trong phần trình bày, nhóm sẽ giải thích sự khác nhau giữa kiểm thử cơ sở dữ liệu quan hệ và NoSQL, demo một kịch bản checkout, kiểm thử bằng DbUnit và Database Rider, mask dữ liệu bằng Tonic.ai, rồi refactor cấu trúc test để có thể tái sử dụng cho project khác.
 
-Một thao tác thành công trên giao diện chưa chứng minh dữ liệu bên dưới hoàn toàn đúng. Ví dụ checkout có thể hiện thông báo thành công nhưng order bị ghi sai user, sai tổng tiền hoặc sai trạng thái. Database testing kiểm tra trạng thái được lưu thật sự, các quan hệ dữ liệu và khả năng lặp lại của test.
+## Slide 2 - Vì sao cần kiểm thử cơ sở dữ liệu?
 
-## Slide 3 - Same lifecycle, different failure model
+Một thao tác thành công trên giao diện chưa chứng minh dữ liệu bên dưới hoàn toàn đúng. Ví dụ, checkout có thể hiển thị thành công nhưng order lại lưu sai người dùng, sai tổng tiền hoặc sai trạng thái.
 
-Cả relational và NoSQL đều dùng quy trình arrange, act, assert và cleanup. Điểm khác nằm ở thứ cần assert. Relational tập trung vào table, constraint, join và transaction. NoSQL tập trung vào document structure, application-level integrity, consistency, partition và replication.
+Database testing kiểm tra sự thật được lưu trong database: order có được tạo hay không, user nào sở hữu order, tổng tiền có khớp với giỏ hàng và trạng thái ban đầu có đúng là `pending` hay không. Khi có assertion trên database, chúng ta có bằng chứng cụ thể và có thể lặp lại test nhiều lần.
 
-## Slide 4 - Relational testing asks the database to enforce integrity
+## Slide 3 - Vòng đời chung của database testing
 
-Trong relational database, schema thường được khai báo rõ. Chúng ta kiểm tra primary key, foreign key, unique, not null, check constraint, transaction và migration. Database có thể trực tiếp từ chối dữ liệu sai. Với EShop, foreign key giúp bảo đảm một order tham chiếu đến đúng user và product.
+Relational database và NoSQL đều có thể áp dụng cùng một vòng đời: chuẩn bị dữ liệu, thực thi hành động, xác minh kết quả và dọn dẹp dữ liệu.
 
-## Slide 5 - NoSQL shifts more responsibility to application tests
+Điểm khác nhau nằm ở loại lỗi cần kiểm tra. Relational database tập trung vào bảng, cột, constraint, join và transaction. NoSQL tập trung nhiều hơn vào cấu trúc document, dữ liệu lồng nhau, consistency, partition, replication và tính toàn vẹn do ứng dụng quản lý.
 
-NoSQL không chỉ có MongoDB mà còn gồm key-value, wide-column và graph database. Với document database, test phải kiểm tra field, nested object, array, document reference, aggregation và nhiều phiên bản document. Nếu hệ thống dùng eventual consistency, test không nên assert ngay lập tức hoặc sleep cố định, mà cần retry có giới hạn và timeout rõ ràng. Ngoài ra còn phải kiểm tra partition key, shard, replication và idempotency.
+## Slide 4 - Kiểm thử cơ sở dữ liệu quan hệ
 
-## Slide 6 - The three tools cover different jobs
+Trong relational database, schema và các ràng buộc thường được khai báo rõ ràng. Chúng ta kiểm tra kiểu dữ liệu, primary key, foreign key, `UNIQUE`, `NOT NULL`, `CHECK`, phép join, transaction, migration, index và query plan.
 
-DbUnit và Database Rider là tool kiểm thử relational vì chúng dựa trên JDBC và mô hình table. Tonic Structural khác ở chỗ nó chuẩn bị dữ liệu an toàn và hỗ trợ cả relational lẫn một số NoSQL như MongoDB và DynamoDB. Tuy nhiên Tonic không tự assert rằng application đúng; sau khi generate dữ liệu vẫn cần framework test riêng.
+Ưu điểm là database engine có thể trực tiếp từ chối nhiều trạng thái không hợp lệ. Ví dụ, foreign key có thể ngăn `orders.user_id` tham chiếu đến một user không tồn tại. Với EShop, đây là mô hình chính mà DbUnit và Database Rider hỗ trợ thông qua JDBC.
 
-## Slide 7 - DbUnit makes database state deterministic
+## Slide 5 - Kiểm thử cơ sở dữ liệu NoSQL
 
-DbUnit đưa database về trạng thái biết trước bằng dataset XML. Trong demo, nhóm load dataset, chạy CLEAN_INSERT rồi assert dữ liệu. Giá trị chính của DbUnit là giúp test lặp lại được: cùng input thì mỗi lần test bắt đầu từ cùng database state.
+NoSQL là một nhóm rộng gồm document database, key-value store, wide-column database và graph database. Với document database như MongoDB, chúng ta kiểm tra field bắt buộc, kiểu dữ liệu, object lồng nhau, array, document reference và aggregation pipeline.
 
-## Slide 8 - Database Rider reduces test ceremony
+Ngoài ra, test cần kiểm tra consistency, partition key, shard, replication, retry và idempotency. Khi database dùng eventual consistency, assertion ngay sau thao tác ghi có thể chưa ổn định. Test nên dùng retry có giới hạn và timeout rõ ràng, thay vì sleep cố định.
 
-Database Rider chạy trên DbUnit nhưng dùng annotation và YAML để giảm code setup. Workflow vẫn là seed, execute và verify, nhưng dataset dễ đọc và test ngắn hơn. Rider phù hợp khi dự án Java muốn duy trì nhiều database test mà không muốn lặp lại phần cấu hình DbUnit.
+## Slide 6 - Ranh giới của ba công cụ
 
-## Slide 9 - Tonic creates safer test data
+Ba công cụ không thay thế hoàn toàn cho nhau.
 
-Tonic.ai giải quyết bài toán khác: không dùng trực tiếp dữ liệu nhạy cảm trong môi trường test. Nhóm export users, products, coupons và orders sang CSV, cấu hình generator cho name, email, password, address và phone, rồi tạo dữ liệu thay thế. Các ID và foreign key cần được giữ ổn định để không phá quan hệ.
+DbUnit và Database Rider là công cụ kiểm thử database quan hệ, dựa trên JDBC và mô hình table. Hai công cụ này không hỗ trợ native cho MongoDB hoặc các loại NoSQL khác.
 
-## Slide 10 - Our demo proves the workflow, not portability yet
+Tonic.ai tập trung vào việc tạo và mask dữ liệu kiểm thử an toàn. Tonic có thể làm việc với relational database và một số connector NoSQL. Tuy nhiên, Tonic tạo dữ liệu chứ không tự chứng minh application hoạt động đúng. Sau khi có dữ liệu, chúng ta vẫn cần test API, browser hoặc database assertion phù hợp.
 
-Nhóm thừa nhận code proof of concept hiện tại còn hard-code. JDBC URL, HSQLDB, câu lệnh tạo bảng, tên USER_ACCOUNT và PRODUCT, dataset path, query và expected count đều nằm trực tiếp trong test. Vì vậy code hiện tại chứng minh tool chạy được, nhưng chưa phải một framework có thể copy nguyên sang project khác.
+## Slide 7 - DbUnit: kiểm soát trạng thái database
 
-## Slide 11 - Current reuse is 30-40%; refactoring can reach 70-80%
+DbUnit đưa database về một trạng thái biết trước bằng dataset XML. Trong demo, nhóm dùng `CLEAN_INSERT` để dọn dữ liệu cũ và nạp lại dataset trước khi test.
 
-Đây là ước lượng kỹ thuật dựa trên cấu trúc code, không phải benchmark. Trong một Java relational project khác, dependencies, annotation và test lifecycle có thể giữ lại. Schema, dataset, SQL và business assertion gần như phải thay hoàn toàn. Tổng thể, code hiện tại tái sử dụng trực tiếp khoảng 30 đến 40 phần trăm. Nếu tách connection, schema và dataset thành configuration, phần test harness có thể tái sử dụng khoảng 70 đến 80 phần trăm.
+Sau đó test thực hiện hoặc kiểm tra kết quả của nghiệp vụ checkout, rồi truy vấn database để assertion. Giá trị chính của DbUnit là tính xác định: mỗi lần test đều bắt đầu từ cùng một database state nên kết quả dễ lặp lại và dễ debug.
 
-## Slide 12 - A reusable harness separates infrastructure from business rules
+## Slide 8 - Database Rider: giảm phần setup lặp lại
 
-Giải pháp là tạo connection factory dùng biến môi trường, đưa schema ra schema.sql, đưa dataset vào resources và tạo base test support. Khi chuyển project relational, nhóm chỉ thay driver, URL, schema, dataset và assertion. Business assertion vẫn phải riêng vì đó chính là ý nghĩa của test. Với NoSQL, DbUnit và Rider phải được thay bằng native driver và framework phù hợp, nhưng quy trình arrange, act, assert, cleanup vẫn tái sử dụng.
+Database Rider xây dựng trên ý tưởng của DbUnit nhưng làm workflow gọn hơn. Annotation và YAML dataset giúp test dễ đọc, giảm phần cấu hình thủ công và phù hợp khi project có nhiều database test.
 
-## Slide 13 - Use the right tool at each boundary
+Trong demo, nhóm dùng Rider để nạp dataset YAML, chạy cùng kịch bản checkout và kiểm tra các kết quả nghiệp vụ giống DbUnit. Điểm khác là cách tổ chức test và dataset dễ bảo trì hơn, còn assertion vẫn phải mô tả đúng business rule.
 
-Kết luận, DbUnit kiểm soát database state, Database Rider làm workflow đó dễ duy trì hơn, còn Tonic tạo dữ liệu test an toàn. Relational và NoSQL có cùng mục tiêu nhưng khác failure model. Nhóm không kỳ vọng một test dùng cho mọi project; nhóm tái sử dụng hạ tầng và quy trình, còn schema và business rule phải được thiết kế lại. Bây giờ nhóm sẽ chuyển sang live demo trên EShop.
+## Slide 9 - Tonic.ai: tạo dữ liệu test an toàn
+
+Tonic.ai giải quyết bài toán khác: không dùng trực tiếp dữ liệu nhạy cảm trong môi trường test hoặc demo.
+
+Nhóm export dữ liệu EShop thành các file CSV, sau đó đưa từng bảng vào file group riêng. Với bảng `users`, nhóm mask `name`, `email`, `password`, `shipping_address` và `phone`. Các cột như `id` và `role` có thể được giữ lại nếu scenario cần duy trì quan hệ hoặc kiểm tra phân quyền.
+
+Tonic giữ format dữ liệu phù hợp nhưng không tự kiểm tra checkout đúng hay sai. Đây là công cụ chuẩn bị test data, không phải công cụ thay thế test framework.
+
+## Slide 10 - Live demo checkout EShop
+
+Bây giờ nhóm chuyển sang kịch bản live demo. Nhóm sẽ reset và seed SQLite, đăng nhập vào EShop, thêm sản phẩm vào giỏ hàng và hoàn tất checkout.
+
+Kết quả mong đợi gồm bốn điểm: bảng `orders` có thêm đơn hàng, `user_id` thuộc về user đang đăng nhập, `total_amount` khớp tổng tiền giỏ hàng và `status` mặc định bằng `pending`.
+
+Sau thao tác trên giao diện, nhóm sẽ chạy DbUnit với XML dataset và Database Rider với YAML dataset. Hai test dùng cùng một nghiệp vụ nhưng minh họa hai cách tổ chức database test khác nhau.
+
+## Slide 11 - Live demo Tonic.ai
+
+Sau phần checkout, nhóm demo Tonic.ai. Nhóm upload `users.csv` vào file group `users`, cấu hình generator cho các cột nhạy cảm, chạy data generation và tải CSV đã được mask.
+
+Nhóm sẽ chỉ ra rằng dữ liệu mới vẫn giữ cấu trúc cần thiết nhưng không còn giữ nguyên thông tin nhạy cảm. Nếu email hoặc password đã bị mask, tài khoản demo ban đầu có thể không đăng nhập được. Vì vậy, dữ liệu generated cần được kiểm tra trước khi import vào database hoặc dùng cho browser test.
+
+## Slide 12 - Giới hạn của proof of concept
+
+Nhóm cũng muốn nêu rõ giới hạn của bản demo. Code hiện tại còn chứa các thông tin đặc thù của EShop như driver, connection URL, đường dẫn dataset, tên bảng, câu SQL và expected value.
+
+Điều này chứng minh tool chạy được trong EShop, nhưng chưa có nghĩa là có thể copy nguyên code sang mọi project. Khi chuyển sang project khác, chúng ta vẫn phải thay schema, dataset, query và business assertion.
+
+## Slide 13 - Khả năng tái sử dụng
+
+Với proof of concept hiện tại, nhóm ước lượng có thể tái sử dụng trực tiếp khoảng 30 đến 40 phần trăm code. Đây là ước lượng kỹ thuật dựa trên cấu trúc code, không phải benchmark đo trên nhiều project.
+
+Sau khi refactor, phần test harness có thể tái sử dụng khoảng 70 đến 80 phần trăm. Những phần có thể giữ lại gồm dependency, connection factory, test lifecycle, dataset loader, cleanup và reporting. Những phần phải thay vẫn là schema, dataset, truy vấn và assertion nghiệp vụ.
+
+## Slide 14 - Refactor để dùng lại cho project khác
+
+Giải pháp là tách hạ tầng test khỏi logic riêng của EShop. Connection factory nên đọc driver và URL từ configuration hoặc environment variable. Schema nên nằm trong `schema.sql`, dataset nằm trong thư mục resources, còn phần hỗ trợ chung như cleanup và lifecycle nằm trong `DatabaseTestSupport`.
+
+Khi chuyển sang một relational project khác, nhóm chỉ cần thay driver, connection, schema, dataset và các assertion nghiệp vụ. Với NoSQL, DbUnit và Database Rider không thể giữ nguyên vì cần native driver và framework phù hợp, nhưng vòng đời arrange, act, assert và cleanup vẫn có thể tái sử dụng.
+
+## Slide 15 - Điểm cần nhớ
+
+Tóm lại, DbUnit giúp kiểm soát trạng thái database quan hệ và xác minh kết quả ổn định. Database Rider giữ nguyên ý tưởng đó nhưng giúp dataset và test dễ đọc, dễ bảo trì hơn. Tonic.ai giúp tạo dữ liệu kiểm thử an toàn, bao gồm relational database và một số hệ NoSQL được hỗ trợ.
+
+Thông điệp cuối cùng của nhóm là: không có một công cụ hoặc một đoạn test duy nhất phù hợp cho mọi project. Chúng ta tái sử dụng hạ tầng và quy trình, nhưng vẫn phải thiết kế lại schema và business assertion cho từng hệ thống.
+
+Bây giờ nhóm sẽ chuyển sang live demo trên EShop để minh họa trực tiếp kịch bản checkout, hai cách kiểm thử bằng DbUnit và Database Rider, quy trình mask bằng Tonic.ai và phần refactor test harness.
