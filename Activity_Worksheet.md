@@ -1,39 +1,89 @@
-# Activity Worksheet: EShop Database Testing
+# Activity Worksheet: Database Testing với DbUnit và Database Rider
 
 ## Thông tin hoạt động
 
 - Thời gian: 20 phút
 - Hình thức: Làm theo nhóm
-- Chủ đề: DbUnit, Database Rider và Tonic.ai với EShop
-- Kết quả cần nộp: Ảnh chụp màn hình và câu trả lời trong Mục 7
+- Chủ đề: Database testing bằng DbUnit và Database Rider
+- Project thực hành: EShop với SQLite
+- Kết quả cần nộp: Câu trả lời và ảnh chụp màn hình trong Mục 7
 
 ## 1. Mục tiêu
 
 Sau hoạt động này, nhóm có thể:
 
-1. Đưa EShop SQLite database về trạng thái seed ban đầu.
-2. Chạy một database test bằng DbUnit và một test bằng Database Rider.
-3. Nhận biết DbUnit dùng XML dataset, còn Database Rider dùng YAML dataset.
-4. Nhận biết dữ liệu nhạy cảm và cách Tonic.ai tạo dữ liệu test an toàn hơn.
+1. Nhận biết test project và dataset đã được chuẩn bị sẵn.
+2. Chạy một test DbUnit bằng XML dataset.
+3. Chạy một test Database Rider bằng YAML dataset.
+4. Phân biệt cách DbUnit và Database Rider nạp dữ liệu và assertion database.
 
-## 2. Cần xem trước khi vào seminar
+## 2. Những gì đã được chuẩn bị sẵn
 
-Trước buổi seminar, mỗi thành viên cần skim các tài liệu sau:
+Trong package/repository được người trình bày chia sẻ, các file sau đã có sẵn:
 
-- [User_Guide.md](User_Guide.md)
-- [SCREencast_DEMO_SCRIPT.md](SCREencast_DEMO_SCRIPT.md)
+```text
+backend/
+dbunit-demo/
+database-rider-demo/
+```
 
-Cần có sẵn trong máy:
+DbUnit đã có sẵn:
 
-- Java 17 hoặc mới hơn và Maven.
-- Node.js và npm.
-- Source code EShop đã clone.
+```text
+dbunit-demo/pom.xml
+dbunit-demo/src/test/java/com/eshop/dbunit/EshopDbUnitTest.java
+dbunit-demo/src/test/resources/datasets/initial-dataset.xml
+```
 
-> Không cần tự viết Java test, tạo `pom.xml`, hoặc import dữ liệu Tonic.ai vào database trong hoạt động 20 phút này.
+Database Rider đã có sẵn:
 
-## 3. Chuẩn bị (2 phút)
+```text
+database-rider-demo/pom.xml
+database-rider-demo/src/test/java/com/eshop/databaserider/EshopDatabaseRiderTest.java
+database-rider-demo/src/test/resources/datasets/eshop-users.yml
+```
 
-Mở Terminal tại thư mục gốc của project `SeminarTesting`, sau đó reset database:
+> Không tạo file mới, không viết Java test, không sửa pom.xml, không sửa dataset và không cần chạy frontend trong hoạt động này.
+
+## 3. Chuẩn bị máy và tải project (2 phút)
+
+Tải bản project đã chuẩn bị từ Moodle hoặc link repository do người trình bày cung cấp. Sau khi giải nén, mở Terminal tại thư mục gốc của project:
+
+```bash
+cd /duong-dan-toi/SeminarTesting
+```
+
+Thay /duong-dan-toi/SeminarTesting bằng đường dẫn thật trên máy của nhóm.
+
+Kiểm tra các file đã có sẵn:
+
+```bash
+test -f dbunit-demo/pom.xml && echo "DbUnit files: OK"
+test -f database-rider-demo/pom.xml && echo "Database Rider files: OK"
+test -f dbunit-demo/src/test/resources/datasets/initial-dataset.xml && echo "DbUnit dataset: OK"
+test -f database-rider-demo/src/test/resources/datasets/eshop-users.yml && echo "Rider dataset: OK"
+```
+
+Kiểm tra công cụ:
+
+```bash
+java -version
+mvn -version
+node -v
+npm -v
+```
+
+Nếu backend chưa có dependency, cài một lần:
+
+```bash
+cd backend
+npm install
+cd ..
+```
+
+## 4. Reset database trước khi test (2 phút)
+
+Từ thư mục gốc project:
 
 ```bash
 cd backend
@@ -41,124 +91,113 @@ node database.js
 cd ..
 ```
 
-Kết quả mong đợi có dòng gần như sau:
+Kết quả mong đợi:
 
 ```text
 Database initialized and seeded (Phase 2).
 Connected to database
 ```
 
-Nếu lệnh báo lỗi `Cannot find module 'sqlite3'`, chạy:
+Lệnh này đưa SQLite database về trạng thái seed ban đầu. Không cần chạy node server.js và không cần mở frontend để chạy hai database test.
+
+## 5. Hoạt động A: chạy DbUnit (6 phút)
+
+### 5.1 Quan sát file đã chuẩn bị
+
+Mở hai file sau bằng VS Code hoặc trình soạn thảo:
+
+```text
+dbunit-demo/src/test/resources/datasets/initial-dataset.xml
+```
+
+Hãy chú ý:
+
+- initial-dataset.xml là dữ liệu setup cho DbUnit.
+- Dataset được dùng để đưa database về trạng thái xác định trước khi test.
+
+### 5.2 Chạy test
+
+Từ thư mục gốc project:
 
 ```bash
-cd backend
-npm install
-node database.js
+cd dbunit-demo
+mvn -Dtest=EshopDbUnitTest test
 cd ..
 ```
 
-## 4. Hoạt động A: DbUnit với XML dataset (6 phút)
+Kết quả mong đợi:
 
-1. Mở file dataset DbUnit:
+```text
+Tests run: 1, Failures: 0, Errors: 0
+BUILD SUCCESS
+```
 
-   ```text
-   dbunit-demo/src/test/resources/datasets/initial-dataset.xml
-   ```
+Chụp ảnh màn hình kết quả Maven có BUILD SUCCESS.
 
-2. Trả lời: dataset này có các bảng nào? Hãy ghi ít nhất một giá trị `email` trong bảng `users`.
+## 6. Hoạt động B: chạy Database Rider (6 phút)
 
-3. Chạy DbUnit test:
+### 6.1 Quan sát file đã chuẩn bị
 
-   ```bash
-   cd dbunit-demo
-   mvn test
-   cd ..
-   ```
+Mở hai file sau:
 
-4. Kết quả mong đợi: Maven hiện `BUILD SUCCESS` và test không có Failure/Error.
+```text
+database-rider-demo/src/test/resources/datasets/eshop-users.yml
+```
 
-5. Chụp một ảnh màn hình terminal hiện kết quả `mvn test`.
+Hãy so sánh với file XML của DbUnit:
 
-## 5. Hoạt động B: Database Rider với YAML dataset (6 phút)
+- DbUnit dùng XML.
+- Database Rider dùng YAML.
+- Cả hai đều dùng dataset để chuẩn bị database trước khi test.
 
-1. Mở file dataset Database Rider:
+### 6.2 Chạy test
 
-   ```text
-   database-rider-demo/src/test/resources/datasets/eshop-users.yml
-   ```
+Từ thư mục gốc project:
 
-2. So sánh nhanh với file XML ở Hoạt động A. Hãy ghi một điểm khác nhau về cú pháp/định dạng.
+```bash
+cd database-rider-demo
+mvn -Dtest=EshopDatabaseRiderTest test
+cd ..
+```
 
-3. Chạy Database Rider test:
+Kết quả mong đợi:
 
-   ```bash
-   cd database-rider-demo
-   mvn test
-   cd ..
-   ```
+```text
+Tests run: 1, Failures: 0, Errors: 0
+BUILD SUCCESS
+```
 
-4. Kết quả mong đợi: Maven hiện `BUILD SUCCESS` và test không có Failure/Error.
-
-5. Chụp một ảnh màn hình file YAML hoặc terminal hiện kết quả test pass.
-
-## 6. Hoạt động C: Nhận diện dữ liệu nhạy cảm trong Tonic.ai (4 phút)
-
-Xem CSV `users.csv` đã export sẵn, hoặc giao diện Tonic.ai do nhóm trình bày mở.
-
-1. Đánh dấu các cột nhạy cảm trong bảng `users`:
-
-   - `id`
-   - `name`
-   - `email`
-   - `password`
-   - `role`
-   - `phone`
-   - `shipping_address`
-
-2. Điền generator phù hợp vào bảng sau:
-
-| Column | Generator/handling đề xuất |
-| --- | --- |
-| `name` |  |
-| `email` |  |
-| `password` |  |
-| `phone` |  |
-| `shipping_address` |  |
-| `id` |  |
-
-3. Trả lời: Vì sao không nên random `id` nếu bảng `orders` tham chiếu tới `user_id`?
-
-4. Trả lời: Tonic.ai có tự động chứng minh rằng EShop chạy đúng hay không? Giải thích một câu.
+Chụp ảnh màn hình kết quả Maven có BUILD SUCCESS.
 
 ## 7. Câu hỏi nộp lại (2 phút)
 
-Nộp một file text hoặc một ảnh ghi rõ tên nhóm và câu trả lời:
+Ghi câu trả lời vào file text hoặc biểu mẫu do người trình bày cung cấp:
 
 1. DbUnit dùng định dạng dataset nào?
-2. Database Rider dùng định dạng dataset nào trong demo này?
-3. Cả hai tool trên dùng để làm gì với database trước/trong khi test?
-4. Kết quả `mvn test` của nhóm là pass hay fail? Nếu fail, dán 1-2 dòng lỗi chính.
-5. Một cột nhạy cảm và generator/handling phù hợp của cột đó trong Tonic.ai.
-6. Trả lời cho hai câu hỏi ở Hoạt động C, bước 3 và 4.
+2. Database Rider dùng định dạng dataset nào trong hoạt động này?
+3. Hai tool dùng dataset để làm gì trước khi test?
+4. BUILD SUCCESS cho biết điều gì?
+5. Nêu một điểm khác nhau giữa XML dataset và YAML dataset.
+6. Vì sao cần reset database trước khi chạy test?
 
 Bằng chứng cần nộp:
 
-- Một screenshot `mvn test` pass của DbUnit hoặc Database Rider.
-- Một screenshot XML/YAML dataset hoặc giao diện Tonic.ai.
+- Một screenshot DbUnit test pass.
+- Một screenshot Database Rider test pass.
+- Một screenshot XML hoặc YAML dataset.
+- Câu trả lời cho 6 câu hỏi trên.
 
-## 8. Hỗ trợ khi gặp lỗi
+## 8. Xử lý lỗi nhanh
 
-| Vấn đề | Cách xử lý nhanh |
+| Lỗi | Cách xử lý |
 | --- | --- |
-| `mvn: command not found` | Kiểm tra Maven đã cài và `mvn -version` chạy được. |
-| `Cannot find module 'sqlite3'` | Vào `backend`, chạy `npm install`, sau đó chạy lại `node database.js`. |
-| Database test fail vì dữ liệu khác | Quay lại thư mục gốc, chạy `cd backend && node database.js`, rồi chạy lại test. |
-| Không đăng nhập được Tonic.ai | Làm phần nhận diện generator trên CSV/screenshot của người trình bày. |
+| mvn: command not found | Cài Maven hoặc kiểm tra lại mvn -version. |
+| Unable to locate a Java Runtime | Cài Java 17 hoặc mới hơn rồi kiểm tra java -version. |
+| Cannot find module sqlite3 | Vào backend, chạy npm install, sau đó chạy lại node database.js. |
+| database is locked | Đóng các tiến trình đang dùng SQLite, chạy lại node database.js, rồi chạy Maven test. |
+| Test fail vì database khác trạng thái | Từ thư mục gốc chạy lại cd backend, node database.js, cd .., rồi chạy test. |
+| Không tìm thấy dataset XML hoặc YAML | Nhóm đang dùng sai package; tải lại bản project đã chuẩn bị. |
+| Maven tải dependency quá lâu | Kiểm tra Internet và chờ Maven hoàn tất lần tải đầu tiên. |
 
-## 9. Chuẩn bị debrief
+> Nếu vẫn không chạy được sau các bước trên, chụp toàn bộ lỗi Terminal và nộp kèm worksheet. Không tự sửa code trong hoạt động 20 phút.
 
-Cuối hoạt động, chọn một đại diện nhóm sẵn sàng chia sẻ:
-
-- Một điểm khác nhau giữa XML và YAML dataset.
-- Lý do cần kiểm soát trạng thái database trước khi test.
-- Một cách Tonic.ai giúp giảm rủi ro lộ dữ liệu nhạy cảm.
