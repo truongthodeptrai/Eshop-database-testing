@@ -99,3 +99,51 @@ Tóm lại, DbUnit giúp kiểm soát trạng thái database quan hệ và xác 
 Thông điệp cuối cùng của nhóm là: không có một công cụ hoặc một đoạn test duy nhất phù hợp cho mọi project. Chúng ta tái sử dụng hạ tầng và quy trình, nhưng vẫn phải thiết kế lại schema và business assertion cho từng hệ thống.
 
 Bây giờ nhóm sẽ chuyển sang live demo trên EShop để minh họa trực tiếp kịch bản checkout, hai cách kiểm thử bằng DbUnit và Database Rider, quy trình mask bằng Tonic.ai và phần refactor test harness.
+
+## Slide 16 - Ngoài chạy tool, còn phải kiểm tra gì?
+
+Sau khi đã nói về công cụ, nhóm muốn mở rộng phạm vi của database testing. Chạy tool chỉ là một phần của hoạt động kiểm thử; điều quan trọng hơn là xác định đúng dữ liệu và điều kiện cần được chứng minh.
+
+Ở lớp dữ liệu và nghiệp vụ, chúng ta kiểm tra giá trị lưu có đúng không, dữ liệu giữa các bảng có mapping đúng không, user có đúng role không, trạng thái và phép tính business có đúng không.
+
+Ở lớp toàn vẹn, chúng ta kiểm tra primary key, unique, foreign key, `NOT NULL`, `CHECK` và trigger. Ở lớp giao dịch, chúng ta kiểm tra ACID, rollback, isolation, duplicate request và các trường hợp deadlock hoặc lỗi giữa chừng.
+
+Nói ngắn gọn, DbUnit và Database Rider giúp thực thi và so sánh test state, nhưng tester vẫn phải quyết định state nào là đúng và rule nào cần kiểm tra.
+
+## Slide 17 - Thiết kế case ở nhiều lớp
+
+Database testing cần nhiều nhóm test chứ không chỉ một test dataset.
+
+Với input, chúng ta kiểm tra giá trị nhỏ nhất, lớn nhất, vượt biên, `NULL`, blank, Unicode, ký tự đặc biệt và kiểu dữ liệu. Với ngày tháng, cần chú ý ngày không hợp lệ, năm nhuận, tháng 0 hoặc 13 và những format mà hệ thống cho phép.
+
+Với integrity và mapping, chúng ta kiểm tra unique, foreign key, trigger, import, migration và rollback. Với performance, chúng ta kiểm tra search, join nhiều bảng, pagination, batch insert/update, query timeout và query plan.
+
+Các case này có thể được thực hiện ở nhiều lớp: GUI hoặc API để kiểm tra flow người dùng, SQL để kiểm tra database state, và automation để chạy lặp lại với dữ liệu có kiểm soát. Một test chỉ thực sự có ý nghĩa khi expected result, dữ liệu và môi trường được xác định rõ.
+
+## Slide 18 - SQL, giao dịch logic và truy cập đồng thời
+
+Ngoài kiểm tra dữ liệu đầu vào và constraint, nhóm cần thiết kế những trường hợp có thể làm SQL hoặc transaction thất bại.
+
+Đầu tiên là SQL test cases. Tester dựa trên hiểu biết về SQL để tạo các trường hợp gây lỗi có chủ đích, kiểm tra câu lệnh SQL tương tác với component của ứng dụng, đồng thời dùng database client hoặc công cụ dữ liệu để chạy và quan sát kết quả của query hay stored procedure. Mục tiêu không chỉ là xem câu lệnh có chạy được hay không, mà còn phải xác nhận dữ liệu sau đó có đúng hay không.
+
+Tiếp theo là logical transaction. Một transaction có thể gồm nhiều thao tác update liên quan. Chúng ta cần kiểm tra mọi nhánh thành công và thất bại. Nếu một bước không thành công, các bước còn lại cũng phải được rollback để database không rơi vào trạng thái chỉ cập nhật một phần.
+
+Cuối cùng là concurrency. Database có thể xử lý nhiều transaction cùng lúc, nên test cần kiểm tra lock, isolation, race condition và deadlock. Hai request chạy riêng có thể đều pass, nhưng khi chạy đồng thời lại tranh chấp cùng dữ liệu. Vì vậy concurrency test là phần quan trọng để bảo vệ tính toàn vẹn dữ liệu trong điều kiện thực tế.
+
+## Slide 19 - AI có thể hỗ trợ ở đâu?
+
+AI có thể hỗ trợ database testing ở nhiều bước, nhưng không thay thế trách nhiệm của tester.
+
+Ở bước chuẩn bị, AI có thể đọc requirement hoặc schema để gợi ý test case boundary, dataset mẫu, câu SQL seed và dữ liệu synthetic. Ở bước phân tích, AI có thể hỗ trợ so sánh expected với actual, phát hiện anomaly, đọc log lỗi và gợi ý những query có khả năng chậm.
+
+Ở bước triển khai, AI có thể tạo skeleton cho DbUnit hoặc Database Rider, sinh checklist về ACID và constraint, hoặc đề xuất kịch bản performance. Sau đó tester phải review lại query, expected result, quan hệ foreign key và chạy xác nhận trên database test.
+
+Nhóm đặt ra ba nguyên tắc: không đưa production PII vào prompt, không chạy SQL do AI sinh trực tiếp trên production, và không xem câu trả lời của AI là bằng chứng test. AI là trợ lý tăng tốc; requirement, database state và evidence chạy thật mới là cơ sở kết luận.
+
+## Slide 20 - Hoạt động cuối seminar
+
+Trước khi kết thúc, nhóm xin mời thầy và các bạn dùng điện thoại quét mã QR trên slide.
+
+Mọi người hãy thực hiện theo những gì nhóm vừa demo về database testing, DbUnit, Database Rider, Tonic.ai và các nội dung mở rộng như constraint, business rule và AI-assisted testing.
+
+Phần hoạt động này giúp kiểm tra lại mức độ hiểu bài sau seminar. Cảm ơn thầy và các bạn đã theo dõi và tham gia cùng nhóm.

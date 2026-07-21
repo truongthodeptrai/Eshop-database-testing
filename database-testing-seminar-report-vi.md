@@ -654,7 +654,111 @@ Hạn chế:
 - Nếu email hoặc password bị che giấu, tài khoản demo mặc định có thể không đăng nhập được.
 - Mức hỗ trợ và tính năng NoSQL phụ thuộc connector và license.
 
-## 10. Các vấn đề đã gặp
+## 10. Phạm vi kiểm thử ngoài ba công cụ
+
+DbUnit, Database Rider và Tonic.ai hỗ trợ chuẩn bị dữ liệu, chạy kiểm tra và tạo
+dữ liệu test. Tuy nhiên, công cụ không tự quyết định toàn bộ điều kiện đúng hoặc
+sai của hệ thống. Người kiểm thử vẫn phải đọc yêu cầu, hiểu cấu trúc database và
+thiết kế các trường hợp kiểm thử phù hợp.
+
+Các nội dung trong mục này là phạm vi kiểm thử bổ sung được đề xuất cho dự án.
+Chúng không đồng nghĩa với việc nhóm đã thực thi toàn bộ các trường hợp nếu chưa
+có kết quả chạy hoặc bằng chứng tương ứng.
+
+### 10.1 Kiểm tra dữ liệu và quy tắc nghiệp vụ
+
+Các giá trị được lưu phải đúng với dữ liệu người dùng đã nhập và đúng với yêu
+cầu nghiệp vụ. Với EShop, một đơn hàng không chỉ cần được tạo mà còn phải thuộc
+đúng người dùng, có tổng tiền đúng và có trạng thái ban đầu phù hợp.
+
+Những nội dung cần kiểm tra gồm:
+
+- Giá trị nhỏ nhất, lớn nhất và giá trị vượt giới hạn.
+- Trường bắt buộc, giá trị `NULL`, chuỗi rỗng và khoảng trắng.
+- Unicode, ký tự đặc biệt và kiểu dữ liệu.
+- Khóa chính, khóa ngoại và dữ liệu không được trùng.
+- Liên kết dữ liệu giữa các bảng sau khi import hoặc chuyển dữ liệu.
+- Các quy tắc tự động như trigger nếu database có sử dụng.
+
+### 10.2 Bốn nhóm trường hợp kiểm thử
+
+| Nhóm | Nội dung cần kiểm tra | Ví dụ |
+| --- | --- | --- |
+| Dữ liệu đầu vào | Giới hạn, để trống, Unicode và kiểu dữ liệu | Tên quá dài, số âm, ngày không hợp lệ |
+| Ràng buộc và liên kết | Khóa chính, khóa ngoại, dữ liệu trùng và mapping | Order tham chiếu tới user không tồn tại |
+| Tốc độ xử lý | Tìm kiếm, nối bảng, phân trang và xử lý nhiều dữ liệu | Query bị chậm hoặc hết thời gian chờ |
+| Cách thực hiện | Giao diện, API, SQL và test tự động | Thao tác checkout rồi kiểm tra bảng `orders` |
+
+Một test chỉ có ý nghĩa khi dữ liệu đầu vào, kết quả mong đợi và môi trường chạy
+đã được xác định rõ.
+
+### 10.3 Kiểm tra câu lệnh SQL và thủ tục lưu trữ
+
+Người kiểm thử có thể dựa vào hiểu biết về SQL để tạo các trường hợp làm câu
+lệnh thất bại hoặc trả về dữ liệu sai. Không chỉ kiểm tra câu SQL có chạy được
+hay không, cần kiểm tra cả dữ liệu được lưu sau khi câu lệnh chạy.
+
+Các bước đề xuất:
+
+1. Chuẩn bị dữ liệu hợp lệ và dữ liệu có chủ đích gây lỗi.
+2. Chạy câu SQL hoặc thủ tục lưu trữ bằng công cụ quản lý database.
+3. Kiểm tra cách SQL tương tác với API hoặc thành phần của ứng dụng.
+4. So sánh dữ liệu thực tế với kết quả mong đợi.
+5. Xác nhận khi thao tác thất bại thì dữ liệu sai không bị lưu lại.
+
+### 10.4 Kiểm tra giao dịch và hoàn tác dữ liệu
+
+Một giao dịch có thể gồm nhiều thao tác thêm hoặc cập nhật dữ liệu. Nếu một thao
+tác thất bại, các thay đổi trước đó của cùng giao dịch phải được hủy để database
+không rơi vào trạng thái chỉ cập nhật một phần.
+
+Các trường hợp cần kiểm tra:
+
+- Toàn bộ các bước đều thành công và dữ liệu được lưu đầy đủ.
+- Bước đầu thành công nhưng bước sau thất bại.
+- Mất kết nối hoặc xuất hiện lỗi khi giao dịch đang chạy.
+- Sau lỗi, dữ liệu được hoàn tác về trạng thái trước giao dịch.
+- Gửi lại cùng một yêu cầu không tạo dữ liệu trùng ngoài mong đợi.
+
+### 10.5 Kiểm tra nhiều người truy cập cùng lúc
+
+Database có thể xử lý nhiều giao dịch trong cùng một thời điểm. Vì vậy cần kiểm
+tra tình huống nhiều người hoặc nhiều tiến trình cùng đọc và cập nhật một dữ
+liệu.
+
+Những rủi ro chính gồm:
+
+- Hai giao dịch cùng cập nhật một bản ghi và làm mất thay đổi của nhau.
+- Một giao dịch đọc dữ liệu khi giao dịch khác chưa hoàn thành.
+- Dữ liệu bị khóa quá lâu làm request khác phải chờ hoặc hết thời gian.
+- Hai giao dịch giữ khóa mà giao dịch kia đang cần, tạo ra deadlock.
+
+Khi xảy ra xung đột, hệ thống cần có cách xử lý rõ ràng như chờ có giới hạn, thử
+lại, báo lỗi hoặc hoàn tác giao dịch. Kết quả cuối cùng không được làm dữ liệu
+mâu thuẫn hoặc cập nhật dở dang.
+
+### 10.6 Áp dụng AI trong database testing
+
+AI có thể hỗ trợ người kiểm thử ở ba giai đoạn:
+
+| Giai đoạn | AI có thể hỗ trợ |
+| --- | --- |
+| Chuẩn bị | Gợi ý trường hợp kiểm thử, dữ liệu mẫu và câu SQL tạo dữ liệu |
+| Phân tích | So sánh kết quả, đọc log lỗi và tìm dữ liệu hoặc query bất thường |
+| Viết bản nháp | Soạn test mẫu và danh sách cần kiểm tra để tester xem lại |
+
+AI chỉ là công cụ hỗ trợ. Người kiểm thử vẫn phải xác nhận câu SQL, dữ liệu và
+kết quả mong đợi bằng yêu cầu hệ thống và kết quả chạy thực tế.
+
+Các nguyên tắc an toàn:
+
+- Không gửi dữ liệu production nhạy cảm cho AI.
+- Không chạy trực tiếp câu SQL do AI tạo trên database production.
+- Chạy thử trên database dành riêng cho kiểm thử hoặc bản sao có thể phục hồi.
+- Xem lại quan hệ khóa ngoại và quy tắc nghiệp vụ trước khi dùng dữ liệu AI tạo.
+- Không xem câu trả lời của AI là bằng chứng test nếu chưa chạy xác nhận.
+
+## 11. Các vấn đề đã gặp
 
 | Vấn đề | Giải thích ngắn |
 | --- | --- |
@@ -666,7 +770,7 @@ Hạn chế:
 | Email/password bị mask ảnh hưởng đăng nhập | Credential được generate không còn khớp với luồng demo |
 | Lỗi import/package Database Rider | Tên import Java phải khớp với phiên bản Database Rider |
 
-## 11. Bài học rút ra
+## 12. Bài học rút ra
 
 Database testing cần dữ liệu ổn định. Nếu cơ sở dữ liệu thay đổi ngẫu nhiên,
 test sẽ khó đáng tin cậy.
@@ -690,7 +794,13 @@ Relational và NoSQL có cùng test lifecycle nhưng failure model khác nhau. N
 đòi hỏi kiểm tra thêm consistency, partition, replication, document version và
 quy tắc toàn vẹn ở tầng ứng dụng.
 
-## 12. Kết luận
+Chạy công cụ thành công chưa đủ để kết luận database an toàn. Cần kiểm tra thêm
+giới hạn dữ liệu, ràng buộc, giao dịch, hoàn tác và truy cập đồng thời.
+
+AI có thể giúp chuẩn bị test case và phân tích lỗi nhanh hơn, nhưng người kiểm
+thử vẫn phải xác nhận kết quả bằng yêu cầu và bằng chứng chạy thực tế.
+
+## 13. Kết luận
 
 DbUnit hữu ích để hiểu nền tảng database testing. Công cụ cho thấy cách nạp
 dataset và kiểm tra kết quả trong cơ sở dữ liệu.
@@ -705,6 +815,8 @@ liệu để quá trình kiểm thử không làm lộ thông tin nhạy cảm.
 - DbUnit và Database Rider giúp xác minh hành vi cơ sở dữ liệu.
 - Tonic.ai giúp chuẩn bị dữ liệu test an toàn hơn.
 - Kịch bản checkout EShop cho thấy lý do cần kiểm tra database sau hành động của user.
+- Các kiểm tra về SQL, rollback, truy cập đồng thời và hiệu năng giúp mở rộng phạm vi ngoài test dataset cơ bản.
+- AI có thể hỗ trợ chuẩn bị và phân tích, nhưng không thay thế người kiểm thử hoặc bằng chứng thực tế.
 
 Seminar cũng làm rõ một ranh giới quan trọng: DbUnit và Database Rider là công
 cụ cho cơ sở dữ liệu quan hệ, trong khi Tonic Structural hỗ trợ cơ sở dữ liệu
@@ -712,7 +824,7 @@ quan hệ và một số connector NoSQL. Giải pháp có tính di động nên
 harness và workflow, đồng thời giữ schema, dataset và business assertion riêng
 cho từng project.
 
-## 13. Bằng chứng và phụ lục
+## 14. Bằng chứng và phụ lục
 
 Tài liệu hỗ trợ:
 
@@ -777,10 +889,11 @@ cd eshop-sut/backend
 node database.js
 ```
 
-## 14. Tài liệu tham khảo
+## 15. Tài liệu tham khảo
 
 - DbUnit: https://www.dbunit.org/
 - Database Rider: https://database-rider.github.io/database-rider/
 - Tonic.ai: https://www.tonic.ai/
 - Tonic Structural data connectors: https://docs.tonic.ai/app/setting-up-your-database/database-connectors
 - Tonic Structural MongoDB support: https://docs.tonic.ai/app/setting-up-your-database/mongodb
+- Tổng quan Database Testing trên Viblo: https://viblo.asia/p/database-testing-lA7GKnELMKZQ

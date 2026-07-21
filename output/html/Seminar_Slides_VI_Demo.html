@@ -380,7 +380,7 @@
           <div class="team">23127081 - Nguyễn Phan Hùng Linh<br>23127172 - Nguyễn Chí Đức<br>23127487 - Thôi Đặng Trường Thọ</div>
         </div>
         <img class="logo" src="Attachment5.png" alt="Logo ĐHQG-HCM KHTN">
-        <div class="footer"><span>ĐHQG-HCM - KHTN</span><span>1 / 16</span></div>
+        <div class="footer"><span>ĐHQG-HCM - KHTN</span><span>1 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Giao diện chỉ cho ta biết thao tác có chạy xong hay không. Muốn biết đơn hàng có lưu đúng không, ta phải xem dữ liệu trong CSDL.">
@@ -393,7 +393,7 @@
           <div class="panel gold"><div class="metric">Test</div><h3>Khi chạy lại</h3><p>Ta chuẩn bị cùng một dữ liệu ban đầu để lỗi xuất hiện lại và dễ tìm nguyên nhân hơn.</p></div>
         </div>
         <div class="quote">Bài test tốt không chỉ dừng ở giao diện. Ta còn đối chiếu dữ liệu đã được lưu.</div>
-        <div class="footer"><span>Vấn đề</span><span>2 / 16</span></div>
+        <div class="footer"><span>Vấn đề</span><span>2 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Dù dùng loại CSDL nào, ta vẫn chuẩn bị dữ liệu, chạy thao tác, kiểm tra kết quả rồi dọn dữ liệu. Khác nhau chủ yếu nằm ở cách dữ liệu được tổ chức.">
@@ -412,7 +412,7 @@
           <tr><td>Quy tắc dữ liệu</td><td>PK, FK, UNIQUE, CHECK</td><td>Thường do ứng dụng kiểm tra</td></tr>
           <tr><td>Điểm cần chú ý</td><td>JOIN và giao dịch ACID</td><td>Đồng bộ dữ liệu, phân vùng, sao chép</td></tr>
         </table>
-        <div class="footer"><span>Quan hệ và NoSQL</span><span>3 / 16</span></div>
+        <div class="footer"><span>Quan hệ và NoSQL</span><span>3 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Với CSDL quan hệ, nhiều quy tắc đã nằm sẵn trong CSDL. Ta cần test để biết các quy tắc đó có thật sự hoạt động khi ứng dụng chạy hay không.">
@@ -436,7 +436,7 @@ FROM orders
 WHERE id = ?;
 ROLLBACK;</pre>
         </div>
-        <div class="footer"><span>Rule do CSDL kiểm soát</span><span>4 / 16</span></div>
+        <div class="footer"><span>Rule do CSDL kiểm soát</span><span>4 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="NoSQL thường linh hoạt hơn về cách lưu dữ liệu. Vì vậy, ta cần để ý cấu trúc document và những quy tắc mà ứng dụng tự kiểm tra.">
@@ -465,7 +465,7 @@ ROLLBACK;</pre>
             </ul>
           </div>
         </div>
-        <div class="footer"><span>Rule ở ứng dụng và hệ phân tán</span><span>5 / 16</span></div>
+        <div class="footer"><span>Rule ở ứng dụng và hệ phân tán</span><span>5 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Ba công cụ này có mục đích khác nhau. DbUnit và Database Rider giúp kiểm tra CSDL quan hệ; Tonic giúp chuẩn bị dữ liệu test an toàn.">
@@ -480,7 +480,7 @@ ROLLBACK;</pre>
         </table>
         <div class="quote">Tonic tạo dữ liệu để ta test an toàn hơn. Còn ứng dụng đúng hay sai vẫn phải do bài test kiểm tra.</div>
         <div class="source">Nguồn: dbunit.sourceforge.net · database-rider.github.io · docs.tonic.ai</div>
-        <div class="footer"><span>Phạm vi</span><span>6 / 16</span></div>
+        <div class="footer"><span>Phạm vi</span><span>6 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="DbUnit giúp ta đưa CSDL về một trạng thái đã biết trước. Sau đó ta chạy chức năng cần test và so sánh dữ liệu thực tế với kết quả mong muốn.">
@@ -500,7 +500,7 @@ ROLLBACK;</pre>
             <p>Ta dùng DbUnit khi cần dữ liệu đầu vào giống nhau ở mỗi lần chạy test.</p>
           </div>
         </div>
-        <div class="footer"><span>Trạng thái biết trước</span><span>7 / 16</span></div>
+        <div class="footer"><span>Trạng thái biết trước</span><span>7 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Database Rider vẫn dựa trên ý tưởng của DbUnit, nhưng phần chuẩn bị test ngắn hơn nhờ annotation và file YAML.">
@@ -520,7 +520,7 @@ void productDatasetIsCorrect() {
             <p>Ta dùng Database Rider khi muốn giữ cách làm của DbUnit nhưng viết phần chuẩn bị ngắn và dễ đọc hơn.</p>
           </div>
         </div>
-        <div class="footer"><span>Test dễ bảo trì</span><span>8 / 16</span></div>
+        <div class="footer"><span>Test dễ bảo trì</span><span>8 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Tonic giúp ta biến dữ liệu thật thành dữ liệu có thể dùng để test. Các thông tin nhạy cảm được thay đi, nhưng dữ liệu vẫn giữ dạng phù hợp để ứng dụng chạy.">
@@ -540,7 +540,7 @@ void productDatasetIsCorrect() {
             <p class="panel teal" style="min-height:0;margin-top:14px"><strong>Nhớ:</strong> dữ liệu an toàn chỉ giúp ta chuẩn bị môi trường test, không thay cho bài test chức năng.</p>
           </div>
         </div>
-        <div class="footer"><span>Quản lý dữ liệu test</span><span>9 / 16</span></div>
+        <div class="footer"><span>Quản lý dữ liệu test</span><span>9 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Trong demo checkout, ta dùng cùng một chức năng của EShop theo hai cách. DbUnit đọc dữ liệu từ XML, còn Database Rider đọc YAML. Cả hai đều kiểm tra bảng orders.">
@@ -559,7 +559,7 @@ void productDatasetIsCorrect() {
           <tr><td>Người mua</td><td>user_id đúng với người đang đăng nhập</td><td>user_id đúng với người đang đăng nhập</td></tr>
           <tr><td>Kết quả</td><td>Tổng tiền đúng, trạng thái là pending</td><td>Tổng tiền đúng, trạng thái là pending</td></tr>
         </table>
-        <div class="footer"><span>Cùng nghiệp vụ, khác cách setup</span><span>10 / 16</span></div>
+        <div class="footer"><span>Cùng nghiệp vụ, khác cách setup</span><span>10 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Với Tonic, ta dùng file users.csv. Ta tải file lên, chọn cách thay dữ liệu nhạy cảm và nhận lại một file an toàn hơn để dùng khi test.">
@@ -578,7 +578,7 @@ void productDatasetIsCorrect() {
           </div>
           <img class="media" src="Attachment6.png" alt="Kết quả job Tonic.ai">
         </div>
-        <div class="footer"><span>Giữ cấu trúc, thay dữ liệu nhạy cảm</span><span>11 / 16</span></div>
+        <div class="footer"><span>Giữ cấu trúc, thay dữ liệu nhạy cảm</span><span>11 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Demo này cho ta thấy cách làm cơ bản, nhưng chưa thể đem sang dự án khác ngay vì nhiều thông tin vẫn được ghi thẳng trong code.">
@@ -601,7 +601,7 @@ assertEquals(2, resultSet.getInt(1));</pre>
             <div class="risk">Kết quả mong đợi chỉ đúng cho ví dụ này.</div>
           </div>
         </div>
-        <div class="footer"><span>Ví dụ thử nghiệm</span><span>12 / 16</span></div>
+        <div class="footer"><span>Ví dụ thử nghiệm</span><span>12 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Trong framework, ba lớp Java được giữ nguyên: đọc cấu hình, mở kết nối JDBC, rồi nạp và kiểm tra dataset. Khi đổi sang project khác, ta chủ yếu thay file cấu hình và các file YAML mô tả dữ liệu.">
@@ -619,7 +619,7 @@ assertEquals(2, resultSet.getInt(1));</pre>
           <div class="panel coral"><h3>Thay theo project</h3><p>Ta đổi JDBC driver, địa chỉ CSDL, file seed, file expected và các cột tự sinh cần bỏ qua.</p></div>
         </div>
         <p style="font-size:13px;color:var(--muted);margin-top:14px">Ta không cần viết lại khung test; ta chỉ chuẩn bị dữ liệu và cấu hình phù hợp với project mới.</p>
-        <div class="footer"><span>Giữ Java, đổi cấu hình và dữ liệu</span><span>13 / 16</span></div>
+        <div class="footer"><span>Giữ Java, đổi cấu hình và dữ liệu</span><span>13 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Để dùng framework cho một website khác, ta xác định CSDL và JDBC driver, tạo file cấu hình cùng dataset, chạy website theo cách của project đó, rồi chạy Maven để kiểm tra dữ liệu thật.">
@@ -650,7 +650,7 @@ db.assert.ignoreColumns=id,created_at</pre>
             </div>
           </div>
         </div>
-        <div class="footer"><span>Config, thao tác, kiểm tra</span><span>14 / 16</span></div>
+        <div class="footer"><span>Config, thao tác, kiểm tra</span><span>14 / 20</span></div>
       </section>
 
       <section class="slide" data-notes="Ta chọn công cụ theo việc cần làm. Phần khung test có thể dùng lại, còn dữ liệu và điều kiện đúng sai phải bám vào bài toán cụ thể của từng dự án.">
@@ -664,21 +664,99 @@ db.assert.ignoreColumns=id,created_at</pre>
         </div>
         <div class="quote">Ta có thể dùng lại khung test. Nhưng dữ liệu và điều kiện kiểm tra vẫn phải viết theo bài toán thực tế.</div>
         <p class="lead" style="margin-top:24px">Tiếp theo, ta xem demo trên EShop.</p>
-        <div class="footer"><span>Kết luận</span><span>15 / 16</span></div>
+        <div class="footer"><span>Kết luận</span><span>15 / 20</span></div>
       </section>
 
-      <section class="slide cover" data-notes="Cuối buổi, ta mời thầy và các bạn quét mã để làm một bài kiểm tra ngắn về những nội dung vừa học.">
+      <section class="slide" data-notes="Ngoài việc chạy DbUnit, Database Rider và Tonic.ai, ta còn phải kiểm tra dữ liệu có đúng nghiệp vụ không, các ràng buộc có hoạt động không và giao dịch có an toàn khi xảy ra lỗi không.">
+        <div class="topline"></div>
+        <div class="eyebrow">Ngoài công cụ</div>
+        <h2>Ngoài chạy công cụ, còn kiểm tra gì?</h2>
+        <div class="grid-3">
+          <div class="panel"><h3>Dữ liệu và nghiệp vụ</h3><p>Giá trị, người dùng, trạng thái và phép tính phải đúng yêu cầu.</p></div>
+          <div class="panel teal"><h3>Ràng buộc dữ liệu</h3><p>Khóa chính, khóa ngoại, dữ liệu duy nhất, bắt buộc nhập và quy tắc tự động.</p></div>
+          <div class="panel coral"><h3>Giao dịch an toàn</h3><p>Khi một bước lỗi, dữ liệu phải được hoàn tác và không bị cập nhật dở dang.</p></div>
+        </div>
+        <div class="quote">Công cụ giúp chạy test. Người kiểm thử phải xác định điều gì là đúng hoặc sai.</div>
+        <div class="footer"><span>Phạm vi kiểm thử CSDL</span><span>16 / 20</span></div>
+      </section>
+
+      <section class="slide" data-notes="Ta chia trường hợp kiểm thử thành bốn nhóm dễ nhớ: dữ liệu đầu vào, ràng buộc và liên kết, tốc độ xử lý, và cách thực hiện test qua giao diện, API, SQL hoặc tự động hóa.">
+        <div class="topline"></div>
+        <div class="eyebrow">Các nhóm kiểm thử</div>
+        <h2>Chia trường hợp kiểm thử thành 4 nhóm</h2>
+        <div class="grid-2" style="margin-top:26px;gap:20px 24px">
+          <div class="panel" style="min-height:112px">
+            <h3>01 &nbsp; Dữ liệu đầu vào</h3>
+            <p>Giá trị nhỏ nhất, lớn nhất, vượt giới hạn, để trống và Unicode.</p>
+          </div>
+          <div class="panel teal" style="min-height:112px">
+            <h3>02 &nbsp; Ràng buộc và liên kết</h3>
+            <p>Khóa chính, khóa ngoại, dữ liệu trùng, nhập và chuyển dữ liệu.</p>
+          </div>
+          <div class="panel coral" style="min-height:112px">
+            <h3>03 &nbsp; Tốc độ xử lý</h3>
+            <p>Tìm kiếm, nối bảng, phân trang, xử lý nhiều dữ liệu và quá thời gian.</p>
+          </div>
+          <div class="panel gold" style="min-height:112px">
+            <h3>04 &nbsp; Cách thực hiện</h3>
+            <p>Kiểm tra qua giao diện, API, câu lệnh SQL và test tự động.</p>
+          </div>
+        </div>
+        <div class="quote" style="margin-top:20px;font-size:18px">Test chỉ có ý nghĩa khi kết quả mong đợi, dữ liệu và môi trường được xác định rõ.</div>
+        <div class="footer"><span>Các nhóm cần kiểm tra</span><span>17 / 20</span></div>
+      </section>
+
+      <section class="slide" data-notes="Ta cần kiểm tra câu lệnh SQL khi có dữ liệu gây lỗi, bảo đảm toàn bộ giao dịch được hoàn tác nếu một bước thất bại, và kiểm tra khi nhiều người cùng thay đổi một dữ liệu.">
+        <div class="topline"></div>
+        <div class="eyebrow">SQL và giao dịch</div>
+        <h2>Kiểm tra khi nhiều thao tác xảy ra</h2>
+        <div class="grid-3" style="margin-top:28px">
+          <div class="panel">
+            <div class="metric">01</div>
+            <h3>Lỗi câu lệnh SQL</h3>
+            <p>Dùng dữ liệu gây lỗi, chạy SQL hoặc thủ tục lưu trữ và kiểm tra kết quả.</p>
+          </div>
+          <div class="panel teal">
+            <div class="metric">02</div>
+            <h3>Hoàn tác giao dịch</h3>
+            <p>Nếu một bước cập nhật thất bại, tất cả thay đổi trước đó phải được hủy.</p>
+          </div>
+          <div class="panel coral">
+            <div class="metric">03</div>
+            <h3>Nhiều người cùng thao tác</h3>
+            <p>Kiểm tra khóa dữ liệu, xung đột cập nhật và tình trạng chờ lẫn nhau.</p>
+          </div>
+        </div>
+        <div class="quote" style="margin-top:22px;font-size:18px">Mục tiêu: dữ liệu không bị cập nhật dở dang hoặc mâu thuẫn.</div>
+        <div class="footer"><span>Giao dịch và truy cập đồng thời</span><span>18 / 20</span></div>
+      </section>
+
+      <section class="slide" data-notes="AI có thể gợi ý trường hợp kiểm thử, dữ liệu mẫu và câu SQL; hỗ trợ đọc log và tìm điểm bất thường; hoặc viết bản nháp test. Người kiểm thử vẫn phải xem lại và chạy xác nhận thực tế.">
+        <div class="topline"></div>
+        <div class="eyebrow">AI hỗ trợ kiểm thử CSDL</div>
+        <h2>AI có thể giúp việc gì?</h2>
+        <div class="grid-3">
+          <div class="panel"><h3>Chuẩn bị</h3><p>Gợi ý trường hợp kiểm thử, dữ liệu mẫu và câu SQL tạo dữ liệu.</p></div>
+          <div class="panel teal"><h3>Phân tích</h3><p>So sánh kết quả, đọc log lỗi và tìm dữ liệu hoặc câu truy vấn bất thường.</p></div>
+          <div class="panel coral"><h3>Viết bản nháp</h3><p>Soạn test mẫu và danh sách cần kiểm tra để người kiểm thử xem lại.</p></div>
+        </div>
+        <div class="quote">AI giúp làm nhanh hơn, nhưng con người vẫn quyết định kết quả đúng hay sai.</div>
+        <p style="font-size:13px;color:var(--muted);margin-top:16px">Lưu ý: không gửi dữ liệu thật nhạy cảm cho AI; luôn xem lại câu SQL và chạy trên CSDL dùng để test.</p>
+        <div class="footer"><span>AI hỗ trợ, con người quyết định</span><span>19 / 20</span></div>
+      </section>
+
+      <section class="slide cover" data-notes="Cuối buổi, ta mời thầy và các bạn quét mã để thực hiện theo những gì tụi mình demo tool.">
         <div class="topline"></div>
         <div class="qr-layout">
           <div>
             <div class="eyebrow">Hoạt động cuối seminar</div>
             <h1>Quét mã QR</h1>
-          <p class="lead">Ta dùng điện thoại quét mã để làm bài kiểm tra ngắn về kiểm thử CSDL và các công cụ vừa giới thiệu.</p>
+          <p class="lead">Ta dùng điện thoại quét mã để thực hiện theo những gì tụi mình demo tool.</p>
             <div class="team">Chúc các bạn làm bài tốt.<br>Cảm ơn thầy và các bạn đã tham gia.</div>
           </div>
           <img class="qr" src="Attachment4.png" alt="QR bài test cuối seminar">
         </div>
-        <div class="footer"><span>ĐHQG-HCM - KHTN</span><span>16 / 16</span></div>
+        <div class="footer"><span>ĐHQG-HCM - KHTN</span><span>20 / 20</span></div>
       </section>
     </div>
   </main>
