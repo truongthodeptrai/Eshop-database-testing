@@ -1,70 +1,75 @@
 # Huong dan cai va dung Database Rider voi EShop SUT
 
-Muc tieu: dung Database Rider de nap du lieu test bang YAML va kiem tra SQLite database cua EShop.
+Muc tieu: dung Database Rider de test cung scenario voi file DbUnit:
 
-Database cua EShop:
+1. Reset database SQLite cua EShop.
+2. Nap dataset ban dau gom `categories`, `users`, va `products`.
+3. Kiem tra bang `users` co dung 2 dong.
+4. Chay scenario EShop tren web: dang nhap, them san pham vao gio hang, checkout.
+5. Dung Database Rider de kiem tra bang `orders` sau checkout.
+
+Database cua EShop nam tai:
 
 ```bash
 /Users/jiduckiess/Documents/SeminarTesting/backend/database.sqlite
 ```
 
-Tai lieu chinh thuc da tham khao:
+Database Rider duoc xay tren DbUnit. Diem khac la Database Rider giup code gon hon va dataset YAML de doc hon XML.
 
-- Database Rider GitHub: https://github.com/database-rider/database-rider
-- Database Rider documentation: https://database-rider.github.io/database-rider/
-- Database Rider JUnit 5 section: https://github.com/database-rider/database-rider#7-junit-5
+## 1. Cai Java va Maven
 
-## 1. Database Rider la gi?
-
-Database Rider la tool giup viet database test de hon tren Java/JUnit. No duoc xay tren DBUnit, nhung thay vi phai viet nhieu setup code nhu DbUnit thuan, Database Rider cho phep dung dataset YAML/XML/JSON/CSV va API/annotation de seed database.
-
-Voi EShop:
-
-```text
-EShop Node.js app       -> backend/database.sqlite
-Database Rider Java test -> backend/database.sqlite
-```
-
-Database Rider khong test UI React va khong test code Node.js truc tiep. No test **database SQLite ma EShop dang dung**.
-
-## 2. Kiem tra Java va Maven
+Kiem tra may da co Java/Maven chua:
 
 ```bash
 java -version
 mvn -version
 ```
 
-Neu chua co:
+Neu may bao loi `Unable to locate a Java Runtime` hoac `command not found: mvn`, can cai:
 
 ```bash
 brew install openjdk@17
 brew install maven
 ```
 
-## 3. Reset database EShop
+Sau khi cai xong, kiem tra lai:
+
+```bash
+java -version
+mvn -version
+```
+
+Neu Java da cai nhung terminal van khong nhan, them Java vao PATH theo huong dan Homebrew hien ra sau khi cai `openjdk@17`.
+
+## 2. Reset database EShop
+
+Chay lenh nay de tao lai database va seed data mau:
 
 ```bash
 cd /Users/jiduckiess/Documents/SeminarTesting/backend
 node database.js
 ```
 
-Ket qua mong doi:
+Lenh thanh cong se hien:
 
 ```text
-Database initialized and seeded (Phase 2).
 Connected to database
+Database initialized and seeded (Phase 2).
 ```
 
-## 4. Tao project demo Database Rider
+## 3. Tao project Database Rider demo
+
+Tao thu muc rieng cho Database Rider:
 
 ```bash
 cd /Users/jiduckiess/Documents/SeminarTesting
-mkdir -p database-rider-demo/src/test/java/com/eshop/databaserider
-mkdir -p database-rider-demo/src/test/resources/datasets
+mkdir database-rider-demo
 cd database-rider-demo
+mkdir -p src/test/java/com/eshop/databaserider
+mkdir -p src/test/resources/datasets
 ```
 
-## 5. Tao `pom.xml`
+## 4. Tao file Maven `pom.xml`
 
 Tao file:
 
@@ -72,7 +77,7 @@ Tao file:
 touch pom.xml
 ```
 
-Noi dung:
+Noi dung can co:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -106,16 +111,16 @@ Noi dung:
         </dependency>
 
         <dependency>
-            <groupId>org.xerial</groupId>
-            <artifactId>sqlite-jdbc</artifactId>
-            <version>3.45.3.0</version>
+            <groupId>org.dbunit</groupId>
+            <artifactId>dbunit</artifactId>
+            <version>2.7.3</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>2.0.13</version>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.45.3.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -132,12 +137,12 @@ Noi dung:
 </project>
 ```
 
-## 6. Tao dataset YAML
+## 5. Tao dataset ban dau
 
 Tao file:
 
 ```bash
-touch src/test/resources/datasets/eshop-users.yml
+touch src/test/resources/datasets/initial-dataset.yml
 ```
 
 Noi dung:
@@ -180,16 +185,22 @@ products:
     description: "Dien thoai cao cap cua Apple"
     imageUrl: "https://placehold.co/300x300/png?text=iPhone+15"
     category_id: 1
+  - id: 2
+    name: "MacBook Pro M3"
+    price: 45000000
+    description: "Laptop chuyen nghiep manh me"
+    imageUrl: "https://placehold.co/300x300/png?text=Macbook+Pro"
+    category_id: 2
 ```
 
-Dataset nay dai dien cho trang thai database truoc test.
+Dataset nay giong dataset XML trong file DbUnit. No dai dien cho trang thai database truoc khi test.
 
-## 7. Viet test Database Rider dau tien
+## 6. Viet test seed database
 
 Tao file:
 
 ```bash
-touch src/test/java/com/eshop/databaserider/EshopDatabaseRiderTest.java
+touch src/test/java/com/eshop/databaserider/EshopDatabaseRiderSeedTest.java
 ```
 
 Noi dung:
@@ -197,9 +208,12 @@ Noi dung:
 ```java
 package com.eshop.databaserider;
 
-import com.github.database.rider.core.configuration.DataSetConfig;
+import com.github.database.rider.core.api.connection.ConnectionHolder;
+import com.github.database.rider.core.api.dataset.SeedStrategy;
 import com.github.database.rider.core.configuration.DBUnitConfig;
-import com.github.database.rider.core.dsl.RiderDSL;
+import com.github.database.rider.core.configuration.DataSetConfig;
+import com.github.database.rider.core.dataset.DataSetExecutorImpl;
+import org.dbunit.database.DatabaseConfig;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -209,21 +223,29 @@ import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class EshopDatabaseRiderTest {
+class EshopDatabaseRiderSeedTest {
 
     private static final String DB_PATH =
             "/Users/jiduckiess/Documents/SeminarTesting/backend/database.sqlite";
 
     @Test
-    void shouldSeedUsersWithDatabaseRiderYamlDataset() throws Exception {
+    void shouldLoadInitialDatasetAndCheckUsers() throws Exception {
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH)) {
-            RiderDSL.withConnection(connection)
-                    .withDataSetConfig(new DataSetConfig("datasets/eshop-users.yml")
-                            .cleanBefore(true)
-                            .disableConstraints(true))
-                    .withDBUnitConfig(new DBUnitConfig()
-                            .addDBUnitProperty("caseSensitiveTableNames", false))
-                    .createDataSet();
+            ConnectionHolder holder = () -> connection;
+
+            DBUnitConfig dbUnitConfig = new DBUnitConfig()
+                    .columnSensing(true)
+                    .cacheConnection(false)
+                    .addDBUnitProperty(DatabaseConfig.FEATURE_CASE_SENSITIVE_TABLE_NAMES, false);
+
+            DataSetExecutorImpl executor =
+                    DataSetExecutorImpl.instance("eshop-rider-seed", holder, dbUnitConfig);
+
+            DataSetConfig dataSet = new DataSetConfig("datasets/initial-dataset.yml")
+                    .strategy(SeedStrategy.CLEAN_INSERT)
+                    .disableConstraints(true);
+
+            executor.createDataSet(dataSet);
         }
 
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH);
@@ -236,60 +258,168 @@ class EshopDatabaseRiderTest {
 }
 ```
 
-Test nay lam 3 viec:
+Test nay lam 3 viec giong test DbUnit:
 
-1. Database Rider doc dataset YAML.
-2. Database Rider nap dataset vao SQLite database cua EShop.
-3. JDBC kiem tra bang `users` co dung 2 dong.
+1. Doc dataset YAML.
+2. Reset database bang `CLEAN_INSERT`.
+3. Kiem tra bang `users` co dung 2 dong.
 
-## 8. Chay test
+`CLEAN_INSERT` nghia la xoa du lieu cu trong cac bang cua dataset, sau do insert du lieu moi vao.
+
+## 7. Chay test seed
+
+Trong thu muc `database-rider-demo`, chay:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting/database-rider-demo
-mvn test
+mvn -Dtest=EshopDatabaseRiderSeedTest test
 ```
 
-Ket qua mong doi:
+Neu thanh cong, Maven se hien ket qua gan nhu:
 
 ```text
 Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
-## 9. So sanh Database Rider voi DbUnit
+## 8. Chay scenario EShop roi kiem tra database
 
-| Noi dung | DbUnit | Database Rider |
-| --- | --- | --- |
-| Dataset | Thuong dung XML | Thuong dung YAML de doc hon |
-| Setup | Nhieu code hon | Gon hon, co RiderDSL/annotation |
-| Nen demo | Tot de noi ve DBUnit goc | Tot de demo database test gon hon |
-| Phu hop voi EShop | Co | Co |
+Scenario nay giong file DbUnit: dang nhap, them san pham vao gio hang, checkout, sau do kiem tra bang `orders`.
 
-## 10. Cach demo voi EShop
-
-Demo don gian:
-
-1. Chay `node database.js` de reset database EShop.
-2. Chay `mvn test` trong `database-rider-demo`.
-3. Mo SQLite hoac dung query de chung minh bang `users` duoc nap dung.
-
-Kiem tra bang terminal:
+1. Reset database:
 
 ```bash
-cd /Users/jiduckiess/Documents/SeminarTesting
-sqlite3 backend/database.sqlite "SELECT id, name, email, role FROM users;"
+cd /Users/jiduckiess/Documents/SeminarTesting/backend
+node database.js
 ```
 
-## 11. Bang chung can chup
+2. Chay backend:
 
-- Screenshot `mvn test` thanh cong.
-- Screenshot file `eshop-users.yml`.
-- Screenshot test Java `EshopDatabaseRiderTest.java`.
-- Screenshot query `SELECT id, name, email, role FROM users;`.
-- Neu co loi, chup loi va ghi cach sua.
+```bash
+node server.js
+```
 
-## 12. Cau noi ngan gon khi thuyet trinh
+3. Mo terminal khac, chay frontend:
+
+```bash
+cd /Users/jiduckiess/Documents/SeminarTesting/frontend-web
+npm run dev
+```
+
+4. Tren web, thuc hien scenario:
+
+- Dang nhap bang `test@eshop.com` / `Test1234!`
+- Them san pham `iPhone 15 Pro Max` vao gio hang
+- Checkout
+
+Ky vong sau checkout:
+
+- Bang `orders` co them 1 don hang.
+- `user_id` la `2`, vi user `test@eshop.com` co id la `2`.
+- `total_amount` la `30000000`, vi san pham `iPhone 15 Pro Max` co gia `30000000`.
+- `status` mac dinh la `pending`.
+
+## 9. Tao expected dataset cho checkout
+
+Tao file:
+
+```bash
+touch src/test/resources/datasets/expected-checkout.yml
+```
+
+Noi dung:
+
+```yaml
+orders:
+  - user_id: 2
+    total_amount: 30000000
+    status: "pending"
+```
+
+Dataset nay chi mo ta nhung cot quan trong can kiem tra. Cot `id` thuong la gia tri database tu sinh, nen khong nen viet co dinh vao expected dataset.
+
+## 10. Viet test kiem tra checkout bang Database Rider
+
+Tao file:
+
+```bash
+touch src/test/java/com/eshop/databaserider/EshopCheckoutDatabaseRiderTest.java
+```
+
+Noi dung:
+
+```java
+package com.eshop.databaserider;
+
+import com.github.database.rider.core.api.connection.ConnectionHolder;
+import com.github.database.rider.core.api.dataset.CompareOperation;
+import com.github.database.rider.core.configuration.DBUnitConfig;
+import com.github.database.rider.core.configuration.DataSetConfig;
+import com.github.database.rider.core.dataset.DataSetExecutorImpl;
+import org.dbunit.database.DatabaseConfig;
+import org.junit.jupiter.api.Test;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+class EshopCheckoutDatabaseRiderTest {
+
+    private static final String DB_PATH =
+            "/Users/jiduckiess/Documents/SeminarTesting/backend/database.sqlite";
+
+    @Test
+    void shouldCreateOrderAfterCheckoutScenario() throws Exception {
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH)) {
+            ConnectionHolder holder = () -> connection;
+
+            DBUnitConfig dbUnitConfig = new DBUnitConfig()
+                    .columnSensing(true)
+                    .cacheConnection(false)
+                    .addDBUnitProperty(DatabaseConfig.FEATURE_CASE_SENSITIVE_TABLE_NAMES, false);
+
+            DataSetExecutorImpl executor =
+                    DataSetExecutorImpl.instance("eshop-rider-checkout", holder, dbUnitConfig);
+
+            DataSetConfig expected = new DataSetConfig("datasets/expected-checkout.yml");
+
+            executor.compareCurrentDataSetWith(
+                    expected,
+                    new String[] {"id"},
+                    null,
+                    new String[] {"user_id"},
+                    CompareOperation.EQUALS);
+        }
+    }
+}
+```
+
+Test nay khong reset database. Ly do: tester da thao tac checkout tren web truoc do. Test chi ket noi vao database that va so sanh bang `orders` voi expected dataset.
+
+Chay test checkout:
+
+```bash
+mvn -Dtest=EshopCheckoutDatabaseRiderTest test
+```
+
+Neu tester checkout san pham khac, can doi `total_amount` trong `expected-checkout.yml` theo tong tien that tren gio hang.
+
+## 11. Bang chung can chup/ghi vao team log
+
+Can luu lai:
+
+- Screenshot `java -version` va `mvn -version`.
+- Screenshot file `initial-dataset.yml`.
+- Screenshot file `expected-checkout.yml`.
+- Screenshot ket qua `mvn -Dtest=EshopDatabaseRiderSeedTest test` thanh cong.
+- Screenshot ket qua `mvn -Dtest=EshopCheckoutDatabaseRiderTest test` thanh cong.
+- Command da chay:
+  - `node database.js`
+  - `node server.js`
+  - `npm run dev`
+- Screenshot UI EShop khi checkout.
+- Loi gap phai va cach sua, neu co.
+
+## 12. Noi dung demo ngan gon khi thuyet trinh
 
 Co the noi:
 
-> Nhom em dung Database Rider de seed va kiem tra database test bang dataset YAML. Database Rider duoc xay tren DBUnit nhung cach viet gon hon. Trong demo, Database Rider doc file `eshop-users.yml`, nap du lieu vao SQLite database cua EShop, sau do test kiem tra bang `users` co dung du lieu mong doi.
+> Nhom em dung Database Rider de quan ly trang thai database truoc va sau test. Truoc test, Database Rider nap dataset YAML vao SQLite database cua EShop bang CLEAN_INSERT. Sau khi chay scenario checkout tren web, Database Rider so sanh bang orders trong database that voi expected dataset. Scenario nay giong DbUnit, nhung Database Rider dung YAML va API gon hon.
